@@ -52,7 +52,15 @@ pacman -Qtdq 2>/dev/null | pacman -Rns --noconfirm - >/dev/null 2>&1 || true   #
 pacman -Scc --noconfirm >/dev/null 2>&1 || true
 rm -rf /var/cache/pacman/pkg/* /root/prl-tools.iso /root/inside.sh /tmp/* 2>/dev/null || true
 journalctl --rotate >/dev/null 2>&1; journalctl --vacuum-time=1s >/dev/null 2>&1
-rm -f /root/.bash_history /home/omarchy/.bash_history /root/lazy.log /root/health.txt
+# Coredumps from build-time app crashes ship in the image otherwise, and omarchy-crash-watch
+# surfaces them as "Process crashed" notifications on the recipient's first boot. Clear them.
+rm -rf /var/lib/systemd/coredump/* 2>/dev/null || true
+# Build-user app caches/state that accumulated during the build (test launches of the GUI apps).
+# ~/.cache is hundreds of MB and pure churn; app state (obsidian etc.) is our test pollution.
+for h in /root "/home/$BUILD_USER" /home/omarchy; do
+  rm -rf "$h/.cache" "$h/.config/obsidian" "$h/.local/share/obsidian" 2>/dev/null || true
+  rm -f  "$h/.bash_history" "$h/lazy.log" "$h/health.txt" 2>/dev/null || true
+done
 rm -f /etc/NetworkManager/system-connections/* 2>/dev/null || true
 rm -f /etc/sudoers.d/90-build-temp /etc/sudoers.d/20-omarchy-install 2>/dev/null || true
 
