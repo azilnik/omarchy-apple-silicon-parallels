@@ -1,0 +1,37 @@
+# aarch64 build of Omarchy's omacalc (Qt Quick calculator). Upstream ships x86_64 only via
+# pkgs.omarchy.org; the source is portable C++/QML and builds cleanly on aarch64.
+pkgname=omacalc
+pkgver=0.2.2
+pkgrel=1
+pkgdesc="Dead-simple calculator built with Qt Quick"
+arch=('aarch64')
+url="https://github.com/omacom-io/omacalc"
+license=('MIT')
+depends=('qt6-base' 'qt6-declarative' 'hicolor-icon-theme')
+makedepends=('qt6-base' 'qt6-declarative' 'git')
+source=("git+https://github.com/omacom-io/omacalc.git#tag=v${pkgver}")
+sha256sums=('SKIP')
+
+build() {
+  cd "$srcdir/omacalc"
+  qmake6 omacalc.pro
+  make -j"$(nproc)"
+}
+
+package() {
+  cd "$srcdir/omacalc"
+  install -Dm755 omacalc "$pkgdir/usr/bin/omacalc"
+  # desktop entry so it shows up in the Omarchy launcher
+  install -Dm644 /dev/stdin "$pkgdir/usr/share/applications/omacalc.desktop" <<'DESK'
+[Desktop Entry]
+Type=Application
+Name=Calculator
+GenericName=Calculator
+Comment=Dead-simple calculator
+Exec=omacalc
+Icon=accessories-calculator
+Terminal=false
+Categories=Utility;Calculator;
+DESK
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE" 2>/dev/null || true
+}

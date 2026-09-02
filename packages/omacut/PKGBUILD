@@ -1,0 +1,30 @@
+# aarch64 build of Omarchy's omacut (Qt Quick + ffmpeg video trimmer). x86_64-only upstream.
+pkgname=omacut
+pkgver=0.4.0
+pkgrel=1
+pkgdesc="Dead-simple video length trimmer built with Qt Quick and ffmpeg"
+arch=('aarch64')
+url="https://github.com/omacom-io/omacut"
+license=('MIT')
+depends=('qt6-base' 'qt6-declarative' 'qt6-multimedia' 'ffmpeg' 'hicolor-icon-theme')
+makedepends=('qt6-base' 'qt6-declarative' 'qt6-multimedia' 'git')
+source=("git+https://github.com/omacom-io/omacut.git#tag=v${pkgver}")
+sha256sums=('SKIP')
+build() { cd "$srcdir/omacut"; qmake6 omacut.pro; make -j"$(nproc)"; }
+package() {
+  cd "$srcdir/omacut"
+  install -Dm755 omacut "$pkgdir/usr/bin/omacut"
+  install -Dm644 /dev/stdin "$pkgdir/usr/share/applications/omacut.desktop" <<'DESK'
+[Desktop Entry]
+Type=Application
+Name=Cut
+GenericName=Video Trimmer
+Comment=Dead-simple video length trimmer
+Exec=omacut %F
+Icon=multimedia-video-player
+Terminal=false
+MimeType=video/mp4;video/x-matroska;video/quicktime;
+Categories=AudioVideo;Video;
+DESK
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE" 2>/dev/null || true
+}

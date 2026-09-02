@@ -1,0 +1,30 @@
+# aarch64 build of Omarchy's omawrite (Qt Quick markdown editor). x86_64-only upstream; portable source.
+pkgname=omawrite
+pkgver=0.5.0
+pkgrel=1
+pkgdesc="Dead-simple Markdown writing app built with Qt Quick"
+arch=('aarch64')
+url="https://github.com/omacom-io/omawrite"
+license=('MIT')
+depends=('qt6-base' 'qt6-declarative' 'hicolor-icon-theme')
+makedepends=('qt6-base' 'qt6-declarative' 'git')
+source=("git+https://github.com/omacom-io/omawrite.git#tag=v${pkgver}")
+sha256sums=('SKIP')
+build() { cd "$srcdir/omawrite"; qmake6 omawrite.pro; make -j"$(nproc)"; }
+package() {
+  cd "$srcdir/omawrite"
+  install -Dm755 omawrite "$pkgdir/usr/bin/omawrite"
+  install -Dm644 /dev/stdin "$pkgdir/usr/share/applications/omawrite.desktop" <<'DESK'
+[Desktop Entry]
+Type=Application
+Name=Write
+GenericName=Markdown Editor
+Comment=Dead-simple Markdown writing app
+Exec=omawrite %F
+Icon=text-editor
+Terminal=false
+MimeType=text/markdown;text/plain;
+Categories=Utility;TextEditor;
+DESK
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE" 2>/dev/null || true
+}
