@@ -35,6 +35,18 @@ minisign -G -p minisign.pub -s ~/.omarchy-parallels.key   # prompts for a passph
    once the project is public — free R2/Workers credits for OSS. (Precedent: Node.js and OpenTofu
    both serve release artifacts from R2.)
 
+
+### Heads-up: GUI prompts during `package.sh`
+
+On Standard/trial editions, cloning + booting the image VM triggers a couple of Parallels
+dialogs the script can't dismiss for you — watch the Parallels window during `make image`:
+
+- **"Duplicate MAC addresses detected"** → click **Create new** (the clone needs its own MAC).
+- **Trial nag** (on the trial edition) → click **Continue Trial**.
+- If the cloned VM shows a Play button instead of booting, click it.
+
+The script waits for the clone to register and SSH up, so it pauses at exactly these moments.
+
 ## Cutting a release
 
 ```sh
