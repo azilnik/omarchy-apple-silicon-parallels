@@ -36,16 +36,17 @@ minisign -G -p minisign.pub -s ~/.omarchy-parallels.key   # prompts for a passph
    both serve release artifacts from R2.)
 
 
-### Heads-up: GUI prompts during `package.sh`
+### Fully headless — no GUI clicks
 
-On Standard/trial editions, cloning + booting the image VM triggers a couple of Parallels
-dialogs the script can't dismiss for you — watch the Parallels window during `make image`:
+`package.sh` and `test/run-tests.sh` drive Parallels entirely through `prlctl`
+(`clone` / `start` / `register` / `exec` / `stop` / `unregister`), all of which work on the
+trial and Standard editions of Parallels Desktop 27. `prlctl clone` mints a fresh UUID + MAC
+with no "duplicate MAC" dialog, `prlctl start` boots with no Play button, and the cold-import
+test asserts every invariant from inside the guest via `prlctl exec` — so no sshd, no console
+automation, and no dialog-clicking are needed. Run `make image` and `make test` unattended.
 
-- **"Duplicate MAC addresses detected"** → click **Create new** (the clone needs its own MAC).
-- **Trial nag** (on the trial edition) → click **Continue Trial**.
-- If the cloned VM shows a Play button instead of booting, click it.
-
-The script waits for the clone to register and SSH up, so it pauses at exactly these moments.
+If a future Parallels release gates any of these behind Pro again, the fallback is the manual
+`open`-and-click path; the scripts would need the pre-`prlctl` version restored from git history.
 
 ## Cutting a release
 

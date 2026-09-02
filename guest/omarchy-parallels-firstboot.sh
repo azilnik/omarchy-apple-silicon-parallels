@@ -49,9 +49,13 @@ apply() { # apply <username> <password> <hostname> <enable_ssh:yes|no> <expire_p
     while IFS= read -r link; do
       target=$(readlink "$link")
       case "$target" in
-        "/home/$SRC_USER/"*) ln -sf "/home/$user/${target#/home/$SRC_USER/}" "$link" ;;
+        "/home/$SRC_USER")     ln -sf "/home/$user" "$link" ;;                               # bare home target
+        "/home/$SRC_USER/"*)   ln -sf "/home/$user/${target#/home/$SRC_USER/}" "$link" ;;    # under old home
       esac
     done < <(find "/home/$user" -xtype l 2>/dev/null)
+    # Sweep any links that are STILL dangling after repointing — these point at build-session
+    # ephemera (/tmp sockets, old-machine-id runtime, PIDs) that the owning app regenerates.
+    find "/home/$user" -xtype l -delete 2>/dev/null || true
   fi
   echo "$user:$pass" | chpasswd
   [[ $expire == yes ]] && passwd -e "$user" >/dev/null 2>&1

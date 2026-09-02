@@ -67,6 +67,11 @@ for h in /root "/home/$BUILD_USER" /home/omarchy; do
   rm -rf "\$h/.cache" "\$h/.config/obsidian" "\$h/.local/share/obsidian" 2>/dev/null || true
   rm -rf "\$h/.local/state/omarchy/notifications" "\$h/.local/state/omarchy/indicators" 2>/dev/null || true
   rm -f  "\$h/.bash_history" "\$h/lazy.log" "\$h/health.txt" 2>/dev/null || true
+  # Build-session runtime state that otherwise ships as dangling symlinks carrying the build
+  # user's name or the old machine-id: mise's per-home trust markers, PulseAudio's
+  # machine-id-keyed runtime link, and Chromium's Singleton{Lock,Socket,Cookie} (all regenerated).
+  rm -rf "\$h/.local/state/mise/trusted-configs" 2>/dev/null || true
+  rm -f  "\$h/.config/pulse/"*-runtime* "\$h/.config/chromium/Singleton"* 2>/dev/null || true
 done
 rm -f /etc/NetworkManager/system-connections/* 2>/dev/null || true
 rm -f /etc/sudoers.d/90-build-temp /etc/sudoers.d/20-omarchy-install 2>/dev/null || true
