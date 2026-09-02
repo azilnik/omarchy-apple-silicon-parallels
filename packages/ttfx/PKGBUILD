@@ -1,0 +1,31 @@
+# aarch64 build of Omarchy's ttfx (Rust). Upstream ships x86_64 only via pkgs.omarchy.org.
+# Source is architecture-neutral Rust — this just drops the arch restriction.
+pkgname=ttfx
+pkgver=0.3.2
+pkgrel=1
+pkgdesc="Terminal text effects as a single static binary — Rust port of terminaltexteffects"
+arch=('aarch64')
+url="https://github.com/omacom-io/ttfx"
+license=('MIT')
+depends=('gcc-libs')
+makedepends=('cargo' 'git')
+source=("git+https://github.com/omacom-io/ttfx.git#tag=v${pkgver}")
+sha256sums=('SKIP')
+
+prepare() {
+  cd "$srcdir/ttfx"
+  export RUSTUP_TOOLCHAIN=stable
+  cargo fetch --locked --target "$(rustc -vV | sed -n 's/host: //p')" || cargo fetch
+}
+
+build() {
+  cd "$srcdir/ttfx"
+  export RUSTUP_TOOLCHAIN=stable CARGO_TARGET_DIR=target
+  cargo build --release --locked || cargo build --release
+}
+
+package() {
+  cd "$srcdir/ttfx"
+  install -Dm755 "target/release/ttfx" "$pkgdir/usr/bin/ttfx"
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE" 2>/dev/null || true
+}

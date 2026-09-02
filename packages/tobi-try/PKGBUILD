@@ -1,0 +1,25 @@
+# aarch64 build of Omarchy's tobi-try. Upstream package is arch=any (pure Ruby), so it is
+# architecture-independent — it only "fails" on ARM because it lives in the x86_64-only
+# omarchy repo. This rebuilds it from source for the aarch64 tree.
+pkgname=tobi-try
+pkgver=1.10.1
+pkgrel=1
+pkgdesc="Fresh directories for every vibe (fuzzy project-scratchpad manager)"
+arch=('any')
+url="https://github.com/tobi/try"
+license=('MIT')
+depends=('ruby')
+source=("git+https://github.com/tobi/try.git#tag=v${pkgver}")
+sha256sums=('SKIP')
+
+package() {
+  cd "$srcdir/try"
+  # bin/try does `load ../try.rb`, and try.rb does `require_relative 'lib/...'`,
+  # so the whole tree must keep its relative layout. Install it under /usr/share and
+  # expose a single launcher on PATH.
+  install -d "$pkgdir/usr/share/tobi-try"
+  cp -a bin lib try.rb VERSION "$pkgdir/usr/share/tobi-try/"
+  install -d "$pkgdir/usr/bin"
+  ln -s /usr/share/tobi-try/bin/try "$pkgdir/usr/bin/try"
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE" 2>/dev/null || true
+}
