@@ -1,66 +1,54 @@
 # Omarchy for Parallels on Apple Silicon
 
-**Omarchy 4 "Quattro" as a ready-to-run VM for Apple Silicon Macs (M1–M4).** A full Hyprland + Quickshell Arch desktop in Parallels — one command, no dual-boot, no bare-metal risk.
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+![Apple Silicon](https://img.shields.io/badge/Apple_Silicon-M1–M4-000000?logo=apple&logoColor=white)
+![Omarchy 4 Quattro](https://img.shields.io/badge/Omarchy-4_%22Quattro%22-5e2ca5)
+![Hyprland + Quickshell](https://img.shields.io/badge/Hyprland-%2B_Quickshell-1793d1)
 
-> **Test-drive the feel of [Omarchy](https://omarchy.org) free for two weeks on the [Parallels trial](https://www.parallels.com/products/desktop/trial/) — no spare hardware, no dual-boot, one command.**
+**Omarchy 4 "Quattro" as a ready-to-run VM for Apple Silicon Macs (M1–M4)** — the full Hyprland + Quickshell Arch desktop with native HiDPI, live window-resize, and a 60-second first boot. One command, no dual-boot, no bare-metal risk, on every Parallels edition including the free trial — so you can [test-drive Omarchy](https://omarchy.org) for two weeks with no spare hardware.
 
-A ready-to-run **Omarchy 4 (Quattro)** — Arch Linux ARM, Hyprland 0.56, and the new Quickshell desktop — as a virtual machine for **Apple Silicon Macs (M1–M4)**, with native HiDPI, a desktop that follows the Parallels window as you resize it, and a 60-second first-boot setup. Works on every Parallels edition, including Standard and the free trial.
+![The Omarchy 4 "Quattro" desktop — Hyprland and Quickshell — running in Parallels on an Apple Silicon Mac](docs/assets/desktop.png)
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/azilnik/omarchy-apple-silicon-parallels/main/install.sh | bash
 ```
 
-Pick **YOLO** at the prompt (or pass `--yolo`) and the next thing you interact with is the Omarchy desktop.
+Pick **YOLO** at the prompt (or pass `--yolo`) and the next thing you touch is the Omarchy desktop.
 
 ## What you get
 
-- **Omarchy 4** (quattro) on Arch Linux ARM — Hyprland, Quickshell, SDDM, the full theme system
-- **Native HiDPI**: 2× rendering matched to your Retina display (5120×2880 on a Studio Display)
-- **Live resize**: drag the Parallels window; the desktop follows at the right scale
-- **First-boot setup**: username, password, hostname — or a 10-second countdown to sensible defaults
-- **Omarchy's apps, rebuilt for ARM**: omacalc, omawrite, omacut, ttfx, the share picker, and Obsidian — packages Omarchy ships x86-only, [built from source for aarch64](packages/)
-- **Verifiable**: run `omarchy-parallels-verify` inside the VM for a machine-readable health report
+- **Omarchy 4 (Quattro)** on Arch Linux ARM — Hyprland 0.56, Quickshell, SDDM, the full theme system
+- **Native HiDPI** matched to your Retina display, and a desktop that **follows the Parallels window** as you resize it
+- **Omarchy's x86-only apps, rebuilt for ARM**: omacalc, omawrite, omacut, ttfx, tobi-try, the Hyprland share picker, and Obsidian ([from source](packages/))
+- **First-boot setup** — username/password/hostname, or a 10-second countdown to sensible defaults
+- **Verifiable**: `omarchy-parallels-verify` inside the VM prints a green/red health report
 
 ## Install
 
-**One-liner** (above), or **manually**: download the latest image from the [releases manifest](https://dl.omarchy-apple-silicon.zilnik.me/latest.json), verify the checksum, unzip into `~/Parallels`, double-click `Omarchy.pvm` (choose **Copied** if asked), then set View → Retina Resolution → **More Space**.
+Requirements: Apple Silicon Mac (M1–M4+), Parallels Desktop (any edition), ~25 GB free.
 
-Requirements: Apple Silicon Mac (M1–M4+), Parallels Desktop (any edition), ~25 GB free disk.
+The one-liner above downloads, verifies, imports, and boots. Prefer manual? Grab the image from the [releases manifest](https://dl.omarchy-apple-silicon.zilnik.me/latest.json), verify the checksum, unzip into `~/Parallels`, double-click `Omarchy.pvm` (choose **Copied** if asked), then set View → Retina Resolution → **More Space**.
 
-## First steps once it boots
+## First things to know
 
-New to Arch or tiling window managers? Two things save everyone's first ten minutes:
-
-- **The `Super` key is `⌘ Cmd`** on your Mac keyboard. Every Omarchy shortcut hint that says "Super" means Cmd.
-- **Menu: `Cmd+Space`. Terminal: `Cmd+Ctrl+Return`.** The image assigns Parallels' Linux keyboard profile so Cmd+Space opens the Omarchy menu (not Spotlight); Parallels keeps Cmd+Return for fullscreen, so the terminal ships on Cmd+Ctrl+Return. Full map + how to restore native Super+Return: [docs/keybindings.md](docs/keybindings.md).
-- Default login is **`omarchy` / `omarchy`** on the quick-start (YOLO) path — run **`passwd`** in a terminal to change it.
-- Sanity check: open a terminal (**Cmd+Ctrl+Return**) and run **`omarchy-parallels-verify`** — it prints a health report and exits green when all is well.
+- **`Super` is `⌘ Cmd`.** Menu is **Cmd+Space**; terminal is **Cmd+Ctrl+Return** (Parallels keeps Cmd+Return for fullscreen). Full map + how to get native bindings back: [docs/keybindings.md](docs/keybindings.md).
+- Default login on the YOLO path is **`omarchy` / `omarchy`** — run **`passwd`** to change it.
 
 ## Security & provenance
 
-- Every release ships a **sha256 checksum** and a **minisign signature**; the installer verifies both. Public key: [`minisign.pub`](minisign.pub).
-- The image is produced **solely by the public scripts in [`build/`](build/)** against a stock [Archboot](https://archboot.com) aarch64 install plus the [`omarchy-arm`](https://github.com/alexisraitano-myffu/omarchy-arm) port. Rebuild it yourself: [docs/rebuild-from-iso.md](docs/rebuild-from-iso.md).
-- Before adopting `omarchy-arm` we audited its installer: no `curl | bash`, no `eval`, no install hooks, every network host enumerated and expected (Arch Linux ARM mirrors, AUR, GitHub). The audit steps are documented so you can repeat them.
-- Images are **sysprepped**: no SSH keys, no host keys, no machine-id, no credentials, no shell history. First boot regenerates all identity. SSH is **off** by default.
-- Parallels Tools (userspace only — clipboard, shared folders, time sync) is preinstalled and runs under *your* licensed Parallels install. Object to redistributed Tools binaries? The rebuild doc has a Tools-free path.
-- **Where the bytes come from:** code and this page live on GitHub; the image itself is served from `dl.omarchy-apple-silicon.zilnik.me` (Cloudflare R2, maintainer-controlled) because GitHub caps release assets at 2 GiB. The checksum in the GitHub-hosted `latest.json` and the minisign signature are what bind the two together — verify them (the installer does) and the hosting location doesn't require trust.
-- Report vulnerabilities via [SECURITY.md](SECURITY.md).
-- This project was built by AI under human direction — see [AI-DISCLOSURE.md](AI-DISCLOSURE.md).
+- Every release ships a **sha256 + minisign signature** and the installer verifies both (key: [`minisign.pub`](minisign.pub)). The image is served from Cloudflare R2 (GitHub caps assets at 2 GiB), but the GitHub-hosted checksum and signature are what you trust — not the host.
+- Built **solely by the public scripts in [`build/`](build/)** from a stock [Archboot](https://archboot.com) aarch64 base plus the [`omarchy-arm`](https://github.com/alexisraitano-myffu/omarchy-arm) port (audited: no `curl | bash`, no `eval`, no install hooks). Rebuild it yourself: [docs/rebuild-from-iso.md](docs/rebuild-from-iso.md).
+- **Sysprepped**: no SSH/host keys, no machine-id, no credentials or shell history — first boot regenerates identity, and SSH is off by default.
+- Parallels Tools (userspace only) runs under *your* licensed Parallels; a Tools-free rebuild path is in the docs.
+- [Report a vulnerability](SECURITY.md) · [AI disclosure](AI-DISCLOSURE.md) — built by AI under human direction.
 
-## Known limitations (honesty section)
+## Known limitations
 
-- **Software rendering.** Parallels' virtio-gpu has no 3D acceleration for Linux ARM guests — fine for real use, but don't judge Omarchy's animation polish here.
-- **Most of Omarchy's x86-only packages are rebuilt for ARM and ship in the image** — `omacalc`, `omawrite`, `omacut`, `ttfx`, `tobi-try`, the Hyprland share picker, and Obsidian (see [packages/](packages/)). A few are deliberately left out (`asdcontrol` needs USB the VM lacks; `obs-studio`/`pinta` aren't worth their build cost without GPU accel). Full ARM notes: [docs/arm-limitations.md](docs/arm-limitations.md).
-- **`omarchy-update` prints a keyring error on ARM** (`omarchy-keyring` is x86-only). Harmless; the update still works.
-- **A couple of Cmd shortcuts belong to Parallels, not Omarchy** — Cmd+Return (fullscreen) and Cmd+Q (quit) are intercepted before the guest. The image works around Cmd+Return by binding the terminal to Cmd+Ctrl+Return; [docs/keybindings.md](docs/keybindings.md) explains the full picture and the one-time Parallels tweak to get native bindings back.
-- Verified on: M3 (Studio Display). Other machines: see [test/VERIFY.md](test/VERIFY.md) — reports welcome.
+- **No GPU acceleration** — Parallels' virtio-gpu is software-rendered for Linux ARM guests. Fine for real use; don't judge animation polish here.
+- **`omarchy-update` prints a harmless keyring error** on ARM (`omarchy-keyring` is x86-only); the update still works.
+- A few x86-only packages are deliberately skipped (`asdcontrol`, `obs-studio`, `pinta`) — see [docs/arm-limitations.md](docs/arm-limitations.md).
+- Verified on **M3 (Studio Display)**; reports from other machines welcome — see [test/VERIFY.md](test/VERIFY.md).
 
-## Uninstall
+## Uninstall & license
 
-```sh
-./host/uninstall.sh
-```
-
-## License
-
-Scripts and docs: MIT. Omarchy, Arch Linux ARM, and Parallels Tools remain under their own licenses.
+`./host/uninstall.sh` removes it. Scripts and docs are MIT; Omarchy, Arch Linux ARM, and Parallels Tools keep their own licenses.
