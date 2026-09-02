@@ -1,11 +1,13 @@
-# Omarchy on Parallels
+# Omarchy for Apple Silicon
+
+**Omarchy 4 "Quattro" as a ready-to-run VM for Apple Silicon Macs (M1–M4).** A full Hyprland + Quickshell Arch desktop in Parallels — one command, no dual-boot, no bare-metal risk.
 
 > **Test-drive the feel of [Omarchy](https://omarchy.org) free for two weeks on the [Parallels trial](https://www.parallels.com/products/desktop/trial/) — no spare hardware, no dual-boot, one command.**
 
-A ready-to-run Omarchy 4 (Arch Linux ARM + Hyprland) virtual machine for Apple Silicon Macs, with native HiDPI, a desktop that follows the Parallels window as you resize it, and a 60-second first-boot setup. Works on every Parallels edition, including Standard and the free trial.
+A ready-to-run **Omarchy 4 (Quattro)** — Arch Linux ARM, Hyprland 0.56, and the new Quickshell desktop — as a virtual machine for **Apple Silicon Macs (M1–M4)**, with native HiDPI, a desktop that follows the Parallels window as you resize it, and a 60-second first-boot setup. Works on every Parallels edition, including Standard and the free trial.
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/azilnik/omarchy-parallels/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/azilnik/omarchy-apple-silicon-vm/main/install.sh | bash
 ```
 
 Pick **YOLO** at the prompt (or pass `--yolo`) and the next thing you interact with is the Omarchy desktop.
@@ -21,7 +23,7 @@ Pick **YOLO** at the prompt (or pass `--yolo`) and the next thing you interact w
 
 ## Install
 
-**One-liner** (above), or **manually**: download the latest image from the [releases manifest](https://dl.omarchy-parallels.zilnik.me/latest.json), verify the checksum, unzip into `~/Parallels`, double-click `Omarchy.pvm` (choose **Copied** if asked), then set View → Retina Resolution → **More Space**.
+**One-liner** (above), or **manually**: download the latest image from the [releases manifest](https://dl.omarchy-apple-silicon.zilnik.me/latest.json), verify the checksum, unzip into `~/Parallels`, double-click `Omarchy.pvm` (choose **Copied** if asked), then set View → Retina Resolution → **More Space**.
 
 Requirements: Apple Silicon Mac (M1–M4+), Parallels Desktop (any edition), ~25 GB free disk.
 
@@ -41,7 +43,7 @@ New to Arch or tiling window managers? Two things save everyone's first ten minu
 - Before adopting `omarchy-arm` we audited its installer: no `curl | bash`, no `eval`, no install hooks, every network host enumerated and expected (Arch Linux ARM mirrors, AUR, GitHub). The audit steps are documented so you can repeat them.
 - Images are **sysprepped**: no SSH keys, no host keys, no machine-id, no credentials, no shell history. First boot regenerates all identity. SSH is **off** by default.
 - Parallels Tools (userspace only — clipboard, shared folders, time sync) is preinstalled and runs under *your* licensed Parallels install. Object to redistributed Tools binaries? The rebuild doc has a Tools-free path.
-- **Where the bytes come from:** code and this page live on GitHub; the image itself is served from `dl.omarchy-parallels.zilnik.me` (Cloudflare R2, maintainer-controlled) because GitHub caps release assets at 2 GiB. The checksum in the GitHub-hosted `latest.json` and the minisign signature are what bind the two together — verify them (the installer does) and the hosting location doesn't require trust.
+- **Where the bytes come from:** code and this page live on GitHub; the image itself is served from `dl.omarchy-apple-silicon.zilnik.me` (Cloudflare R2, maintainer-controlled) because GitHub caps release assets at 2 GiB. The checksum in the GitHub-hosted `latest.json` and the minisign signature are what bind the two together — verify them (the installer does) and the hosting location doesn't require trust.
 - Report vulnerabilities via [SECURITY.md](SECURITY.md).
 - This project was built by AI under human direction — see [AI-DISCLOSURE.md](AI-DISCLOSURE.md).
 
