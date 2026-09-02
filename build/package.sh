@@ -27,12 +27,15 @@ rm -rf "$WORK"; mkdir -p "$WORK" "$OUT"
 cp -c -R "$SRC" "$CLONE" 2>/dev/null || cp -R "$SRC" "$CLONE"
 # distinct name inside config so the registered clone is distinguishable from the builder
 sed -i '' 's|<VmName>Omarchy</VmName>|<VmName>Omarchy-image</VmName>|' "$CLONE/config.pvs"
+# Blank the MAC *before* registering so Parallels auto-assigns a fresh one silently — otherwise
+# it pops a modal "Duplicate MAC addresses" dialog that has to be clicked by hand.
+sed -i '' -E 's|<MAC>[0-9A-Fa-f]{12}</MAC>|<MAC></MAC>|' "$CLONE/config.pvs"
 
 echo "==> [2/6] registering + booting the clone"
 BEFORE=$(prlctl list -a --no-header 2>/dev/null | awk '{print $1}' | sort)
 open "$CLONE"
-echo "    Dismiss Parallels dialogs as they appear: 'Duplicate MAC addresses' -> Create new;"
-echo "    trial nag -> Continue Trial. Press Play if the clone doesn't boot on its own."
+echo "    (On the trial edition, dismiss the 'Continue Trial' nag if it appears, and press Play"
+echo "     if the clone shows a Play button instead of booting.)"
 NEW_UUID=""
 for _ in $(seq 1 60); do
   sleep 5
