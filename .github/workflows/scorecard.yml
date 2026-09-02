@@ -12,6 +12,9 @@ jobs:
   analysis:
     name: Scorecard analysis
     runs-on: ubuntu-latest
+    # Scorecard publishes results to the public OpenSSF API and only supports public
+    # repositories — skip cleanly while this repo is private, run once it goes public.
+    if: github.event.repository.visibility == 'public'
     permissions:
       security-events: write
       id-token: write
@@ -21,7 +24,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Run analysis
-        uses: ossf/scorecard-action@v2
+        uses: ossf/scorecard-action@v2.4.4
         with:
           results_file: results.sarif
           results_format: sarif
