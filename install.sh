@@ -1,5 +1,5 @@
 #!/bin/bash
-# omarchy-parallels installer — get Omarchy running in Parallels on an Apple Silicon Mac.
+# omarchy-apple-silicon-parallels installer — get Omarchy running in Parallels on an Apple Silicon Mac.
 #
 #   curl -fsSL https://raw.githubusercontent.com/azilnik/omarchy-apple-silicon-parallels/main/install.sh | bash
 #
@@ -66,7 +66,7 @@ URL=$(sed -n 's/.*"url" *: *"\([^"]*\)".*/\1/p' <<<"$MANIFEST" | head -1)
 SHA=$(sed -n 's/.*"sha256" *: *"\([^"]*\)".*/\1/p' <<<"$MANIFEST" | head -1)
 SIZE=$(sed -n 's/.*"size_human" *: *"\([^"]*\)".*/\1/p' <<<"$MANIFEST" | head -1)
 [[ -n $VER && -n $URL && -n $SHA ]] || die "Malformed manifest"
-ok "omarchy-parallels v$VER (${SIZE:-a few GB} download)"
+ok "Omarchy for Apple Silicon v$VER (${SIZE:-a few GB} download)"
 confirm "Download and install v$VER into $DEST?" || die "Cancelled."
 
 # ---------- download (resumable) ----------

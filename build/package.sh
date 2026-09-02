@@ -73,7 +73,7 @@ rm -f "$ZIP"
 ( cd "$WORK" && zip -qry "$ZIP" Omarchy.pvm )
 shasum -a 256 "$ZIP" | tee "$ZIP.sha256"
 if command -v minisign >/dev/null && [[ -n ${MINISIGN_KEY:-} ]]; then
-  minisign -Sm "$ZIP" -s "$MINISIGN_KEY" -t "omarchy-parallels v$VERSION"
+  minisign -Sm "$ZIP" -s "$MINISIGN_KEY" -t "omarchy-apple-silicon-parallels v$VERSION"
   echo "==> signed: $ZIP.minisig"
 else
   echo "==> NOTE: unsigned (set MINISIGN_KEY to sign)"
