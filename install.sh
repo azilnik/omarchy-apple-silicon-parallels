@@ -1,11 +1,11 @@
 #!/bin/bash
 # omarchy-parallels installer — get Omarchy running in Parallels on an Apple Silicon Mac.
 #
-#   curl -fsSL https://raw.githubusercontent.com/OWNER/omarchy-parallels/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/YOUR-GH-USER/omarchy-parallels/main/install.sh | bash
 #
 # Interactive by default; `--yolo` (or choosing YOLO at the menu) runs fully headless:
 # download → verify → import → HiDPI pref → boot, with the in-guest first-boot applying
-# safe defaults on a 10-second countdown.
+# safe defaults after a short countdown.
 
 set -euo pipefail
 
@@ -17,10 +17,10 @@ YOLO=0
 
 # ---------- presentation (degrades cleanly: no color when not a tty / NO_COLOR) ----------
 if [[ -t 1 && -z ${NO_COLOR:-} ]]; then
-  B=$'\033[1m'; DIM=$'\033[2m'; CYAN=$'\033[36m'; GREEN=$'\033[32m'; RED=$'\033[31m'; N=$'\033[0m'
-else B=""; DIM=""; CYAN=""; GREEN=""; RED=""; N=""; fi
+  B=$'\033[1m'; CYAN=$'\033[36m'; GREEN=$'\033[32m'; RED=$'\033[31m'; N=$'\033[0m'
+else B=""; CYAN=""; GREEN=""; RED=""; N=""; fi
 step()  { printf '\n%s==>%s %s%s%s\n' "$CYAN" "$N" "$B" "$1" "$N"; }
-note()  { printf '    %s%s%s\n' "$DIM" "$1" "$N"; }
+note()  { printf '    %s\n' "$1"; }
 ok()    { printf '    %s✓%s %s\n' "$GREEN" "$N" "$1"; }
 die()   { printf '\n%s✗ %s%s\n' "$RED" "$1" "$N" >&2; exit 1; }
 confirm() { # confirm <prompt> — auto-yes in yolo mode
@@ -54,6 +54,9 @@ ok "Apple Silicon + Parallels Desktop present"
 FREE_GB=$(df -g "$HOME" | awk 'NR==2{print $4}')
 [[ $FREE_GB -ge 25 ]] || die "Need ~25 GB free (image unpacks to ~10-12 GB); only ${FREE_GB} GB available."
 ok "${FREE_GB} GB free disk"
+# Check for a leftover install up front, before spending 10 minutes downloading (M4).
+[[ -d "$DEST/Omarchy.pvm" ]] && die "$DEST/Omarchy.pvm already exists. Remove it (or ./host/uninstall.sh) and re-run."
+ok "no existing install in the way"
 
 # ---------- manifest ----------
 step "Fetching release info"
@@ -68,62 +71,79 @@ confirm "Download and install v$VER into $DEST?" || die "Cancelled."
 
 # ---------- download (resumable) ----------
 step "Downloading image"
+note "${SIZE:-~3-4 GB} — several minutes on a typical connection. Safe to interrupt; re-running resumes."
 mkdir -p "$DEST"
 ZIP="$DEST/omarchy-parallels-v$VER.zip"
-curl -fL -C - --progress-bar -o "$ZIP" "$URL" || die "Download failed (re-run to resume)."
+# default curl meter (shows speed + ETA + elapsed) beats --progress-bar for a multi-GB file (M3)
+curl -fL -C - -o "$ZIP" "$URL" || die "Download failed. Re-run to resume from where it stopped."
 ok "downloaded"
 
 step "Verifying integrity"
 GOT=$(shasum -a 256 "$ZIP" | awk '{print $1}')
-[[ $GOT == "$SHA" ]] || { rm -f "$ZIP"; die "Checksum mismatch — the download was corrupted or tampered with (removed it). Re-run to try again."; }
+[[ $GOT == "$SHA" ]] || { rm -f "$ZIP"; die "Checksum mismatch — the download was corrupted in transit (removed it). Re-run to download again."; }
 ok "sha256 verified"
 if [[ -n $PUBKEY ]] && command -v minisign >/dev/null 2>&1; then
   curl -fsSL -o "$ZIP.minisig" "$URL.minisig" 2>/dev/null &&
-    { minisign -Vm "$ZIP" -P "$PUBKEY" >/dev/null 2>&1 && ok "signature verified" || die "SIGNATURE INVALID — do not use this image."; }
+    { minisign -Vm "$ZIP" -P "$PUBKEY" >/dev/null 2>&1 && ok "signature verified" || die "SIGNATURE INVALID — do not use this image. Please open an issue."; }
 else
-  note "signature check skipped ($([[ -z $PUBKEY ]] && echo 'no key configured' || echo 'minisign not installed — brew install minisign'))"
+  note "signature check skipped ($([[ -z $PUBKEY ]] && echo 'no key configured for this release' || echo 'minisign not installed — brew install minisign to enable'))"
 fi
 
-# ---------- unpack + import ----------
+# ---------- unpack ----------
 step "Unpacking"
-[[ -d "$DEST/Omarchy.pvm" ]] && die "$DEST/Omarchy.pvm already exists — remove or rename it first, then re-run."
+# The checksum already passed, so the bytes are exactly what the release published. If unzip
+# still fails, the RELEASE artifact itself is broken — re-downloading gets the same bad bytes,
+# so say so and stop rather than looping the user through another multi-GB download (B2).
 if ! unzip -tq "$ZIP" >/dev/null 2>&1; then
-  rm -f "$ZIP"
-  die "The downloaded file isn't a valid archive (removed it). Re-run to download again."
+  die "This release's image is corrupt (checksum matched, but it won't unpack). This is a problem with the release, not your download — please open an issue. The file is at $ZIP."
 fi
-unzip -q "$ZIP" -d "$DEST" >/dev/null || die "Could not unpack the image into $DEST."
+unzip -q "$ZIP" -d "$DEST" >/dev/null || die "Could not unpack into $DEST (out of space, or permissions?)."
 ok "unpacked to $DEST/Omarchy.pvm"
 rm -f "$ZIP" "$ZIP.minisig"
 
+# ---------- import ----------
 step "Importing into Parallels"
-note "If Parallels asks 'Copied or Moved?', choose Copied."
-open "$DEST/Omarchy.pvm"
+note "A .pvm is a Parallels VM. If asked 'Copied or Moved?', choose Copied (either works — Copied just keeps your download in place)."
+open "$DEST/Omarchy.pvm" || die "Could not hand the VM to Parallels. Open it yourself: $DEST/Omarchy.pvm"
+# prlctl confirmation is a nicety, not a requirement — it exists on most editions but not all,
+# and the import succeeds regardless. Never fail the install just because prlctl is absent (B3).
 PRLCTL="/usr/local/bin/prlctl"
-for _ in $(seq 1 24); do
-  "$PRLCTL" list -a --no-header 2>/dev/null | grep -q Omarchy && break; sleep 5
-done
-"$PRLCTL" list -a --no-header 2>/dev/null | grep -q Omarchy || die "VM never registered in Parallels."
-ok "VM registered"
-
-# ---------- post-import (HiDPI + notes) ----------
-QUIET_FLAG=(); [[ $YOLO -eq 1 ]] && QUIET_FLAG=(--quiet)
-SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd || echo "")"
-if [[ -n $SELF_DIR && -x "$SELF_DIR/host/post-import.sh" ]]; then
-  "$SELF_DIR/host/post-import.sh" "${QUIET_FLAG[@]}"
+if [[ -x $PRLCTL ]]; then
+  REGISTERED=0
+  for _ in $(seq 1 24); do
+    "$PRLCTL" list -a --no-header 2>/dev/null | grep -q Omarchy && { REGISTERED=1; break; }; sleep 5
+  done
+  [[ $REGISTERED -eq 1 ]] && ok "VM registered" ||
+    note "couldn't confirm registration automatically — if the VM didn't appear, double-click $DEST/Omarchy.pvm"
 else
-  curl -fsSL "${MANIFEST_URL%/latest.json}/post-import.sh" | bash -s -- "${QUIET_FLAG[@]}" ||
-    note "post-import step unavailable — set HiDPI by hand: View → Retina Resolution → More Space"
+  note "handed off to Parallels (this edition has no prlctl to confirm with)"
 fi
+
+# ---------- post-import (HiDPI pref, inline — no second remote fetch) ----------
+# Retina 'More Space' lives in host prefs keyed by the VM's UUID, which is regenerated on import,
+# so it can't ship inside the image. Best-effort here; the UI path below always works.
+UUID=""
+[[ -x $PRLCTL ]] && UUID=$("$PRLCTL" list -a --no-header 2>/dev/null | awk '/Omarchy/{print $1; exit}' | tr -d '{}')
+[[ -z $UUID && -f "$DEST/Omarchy.pvm/config.pvs" ]] && \
+  UUID=$(grep -o '<VmUuid>{[^}]*}</VmUuid>' "$DEST/Omarchy.pvm/config.pvs" | head -1 | tr -d '{}' | sed 's/<[^>]*>//g')
+[[ -n $UUID ]] && defaults write "com.parallels.Parallels Desktop" "{$UUID}.0.ConsoleWidgetScaleFactorWithDynres" -int 2 2>/dev/null || true
 
 # ---------- boot ----------
 step "Starting Omarchy"
-open "$DEST/Omarchy.pvm"
+open "$DEST/Omarchy.pvm" 2>/dev/null || true
 printf '\n%s✓ Done.%s ' "$GREEN" "$N"
 if [[ $YOLO -eq 1 ]]; then
-  printf 'The VM is booting. First boot applies defaults after a 10s countdown:\n'
-  printf '  user %somarchy%s, a generated password shown on screen (change it at first login).\n' "$B" "$N"
+  printf 'The VM is booting. First boot applies defaults after a short countdown:\n'
+  printf '  login %somarchy%s / password %somarchy%s — change it after first login by running %spasswd%s.\n' "$B" "$N" "$B" "$N" "$B" "$N"
 else
-  printf 'The VM is booting — answer the three first-boot questions in its window.\n'
+  printf 'The VM is booting — answer the first-boot questions in its window.\n'
 fi
-printf '%sTip:%s Cmd+Space is taken by Spotlight; use Cmd+Option+O for the Omarchy menu,\n' "$B" "$N"
-printf 'or free it up in Parallels: Preferences → Shortcuts.\n'
+cat <<TIPS
+
+${B}Two things every first-timer needs to know:${N}
+  • Omarchy's shortcuts use the ${B}Super${N} key — on your Mac keyboard that's ${B}⌘ Cmd${N}.
+  • ${B}Cmd+Space${N} opens macOS Spotlight, not the Omarchy menu. Use ${B}Cmd+Option+O${N} instead,
+    or forward it in Parallels → Preferences → Shortcuts.
+  • If the desktop looks soft: View → Retina Resolution → ${B}More Space${N} (it adapts in seconds).
+  • To confirm everything's healthy, open a terminal in the VM and run: ${B}omarchy-parallels-verify${N}
+TIPS

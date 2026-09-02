@@ -96,25 +96,46 @@ REMIND
   say "Starting the desktop..."
   sleep 6
 else
-  while true; do
-    USERNAME=$($G input --placeholder "$DEFAULT_USER" --prompt "Username: " --value "$DEFAULT_USER")
-    [[ $USERNAME =~ ^[a-z_][a-z0-9_-]{0,31}$ ]] && break
-    say "Usernames: lowercase letters, digits, - and _, starting with a letter."
-  done
-  while true; do
-    P1=$($G input --password --prompt "Password: ")
-    P2=$($G input --password --prompt "Confirm:  ")
-    [[ -n $P1 && $P1 == "$P2" ]] && break
-    say "Passwords empty or mismatched — try again."
-  done
-  HOSTNAME_IN=$($G input --placeholder omarchy --prompt "Hostname: " --value omarchy)
-  [[ $HOSTNAME_IN =~ ^[a-zA-Z0-9-]{1,63}$ ]] || HOSTNAME_IN=omarchy
-  WANT_SSH=no
-  $G confirm "Enable SSH server?" --default=false && WANT_SSH=yes
-  apply "$USERNAME" "$P1" "$HOSTNAME_IN" "$WANT_SSH" no
-  big "Setup complete"
-  if $G confirm "Run a system update now? (takes a few minutes)" --default=false; then
-    sudo -u "$USERNAME" -i omarchy-update -y || say "Update hit an issue — run 'omarchy-update' later."
+  # Input helpers that work with or without gum (gum could be absent; also lets an
+  # accidental keypress still reach a usable flow instead of a frozen prompt).
+  ask() { # ask <prompt> <default>  -> echoes the answer
+    if [[ -x $G ]]; then $G input --prompt "$2 " --value "$3" 2>/dev/null || echo "$3"
+    else read -r -p "$2 [$3]: " _a </dev/tty || _a=""; echo "${_a:-$3}"; fi
+  }
+  ask_pw() { # ask_pw <prompt> -> echoes the (hidden) answer
+    if [[ -x $G ]]; then $G input --password --prompt "$1 " 2>/dev/null
+    else read -r -s -p "$1 " _p </dev/tty; echo >/dev/tty; echo "$_p"; fi
+  }
+  yesno() { # yesno <prompt>  -> returns 0 for yes (default No)
+    if [[ -x $G ]]; then $G confirm "$1" --default=false
+    else read -r -p "$1 [y/N]: " _y </dev/tty || _y=""; [[ $_y =~ ^[Yy] ]]; fi
+  }
+
+  # An accidental keypress lands here — offer a one-key bail back to quick-start.
+  if ! yesno "Set things up manually? (No = quick-start defaults: user 'omarchy')"; then
+    apply "$DEFAULT_USER" "$DEFAULT_USER" omarchy no no
+    install -d /var/lib/omarchy-parallels; touch /var/lib/omarchy-parallels/default-password
+    big "Quick-start defaults applied"; say "login omarchy / omarchy — run 'passwd' to change it"; sleep 4
+  else
+    while true; do
+      USERNAME=$(ask "" "Username:" "$DEFAULT_USER")
+      [[ $USERNAME =~ ^[a-z_][a-z0-9_-]{0,31}$ ]] && break
+      say "Usernames: lowercase letters, digits, - and _, starting with a letter."
+    done
+    while true; do
+      P1=$(ask_pw "Password:")
+      P2=$(ask_pw "Confirm: ")
+      [[ -n $P1 && $P1 == "$P2" ]] && break
+      say "Passwords empty or mismatched — try again."
+    done
+    HOSTNAME_IN=$(ask "" "Hostname:" omarchy)
+    [[ $HOSTNAME_IN =~ ^[a-zA-Z0-9-]{1,63}$ ]] || HOSTNAME_IN=omarchy
+    WANT_SSH=no; yesno "Enable SSH server?" && WANT_SSH=yes
+    apply "$USERNAME" "$P1" "$HOSTNAME_IN" "$WANT_SSH" no
+    big "Setup complete"
+    if yesno "Run a system update now? (takes a few minutes)"; then
+      sudo -u "$USERNAME" -i omarchy-update -y || say "Update hit an issue — run 'omarchy-update' later."
+    fi
   fi
 fi
 

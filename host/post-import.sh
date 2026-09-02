@@ -8,10 +8,17 @@
 set -uo pipefail
 QUIET=0; [[ ${1:-} == --quiet ]] && QUIET=1
 PRLCTL="/usr/local/bin/prlctl"
+PVM="${OMARCHY_PVM:-$HOME/Parallels/Omarchy.pvm}"
 
-UUID=$("$PRLCTL" list -a --no-header 2>/dev/null | awk '/Omarchy/{print $1; exit}' | tr -d '{}')
+# UUID from prlctl when available (most editions), else from the registered VM's config (B3).
+UUID=""
+[[ -x $PRLCTL ]] && UUID=$("$PRLCTL" list -a --no-header 2>/dev/null | awk '/Omarchy/{print $1; exit}' | tr -d '{}')
+[[ -z $UUID && -f "$PVM/config.pvs" ]] && \
+  UUID=$(grep -o '<VmUuid>{[^}]*}</VmUuid>' "$PVM/config.pvs" | head -1 | tr -d '{}' | sed 's/<[^>]*>//g')
 if [[ -z $UUID ]]; then
-  echo "post-import: no Omarchy VM registered yet" >&2; exit 1
+  echo "post-import: couldn't find the VM's UUID — set HiDPI by hand:" >&2
+  echo "  Parallels → View → Retina Resolution → More Space" >&2
+  exit 0
 fi
 
 # Best-effort: undocumented key observed on Parallels 27 (ConsoleWidgetScaleFactorWithDynres=2

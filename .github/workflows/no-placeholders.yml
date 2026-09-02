@@ -1,0 +1,25 @@
+name: No unfilled placeholders
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+# Fails if the headline install command still contains a placeholder GitHub owner.
+# The one-liner is the first thing a visitor runs; a stray OWNER/YOUR-GH-USER 404s it.
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Grep for placeholders
+        run: |
+          if grep -RnE 'raw\.githubusercontent\.com/(OWNER|YOUR-GH-USER)/' README.md install.sh; then
+            echo "::error::Unfilled GitHub-owner placeholder in the install URL — substitute the real owner before publishing."
+            exit 1
+          fi
+          echo "no placeholders found"
