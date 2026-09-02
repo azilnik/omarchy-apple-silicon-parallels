@@ -1,4 +1,4 @@
-# Omarchy for Apple Silicon
+# Omarchy for Parallels on Apple Silicon
 
 **Omarchy 4 "Quattro" as a ready-to-run VM for Apple Silicon Macs (M1–M4).** A full Hyprland + Quickshell Arch desktop in Parallels — one command, no dual-boot, no bare-metal risk.
 
