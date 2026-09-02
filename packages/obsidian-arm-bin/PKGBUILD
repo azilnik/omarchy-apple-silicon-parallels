@@ -2,7 +2,6 @@
 # so — like the x86_64 obsidian-bin AUR package — this downloads the vendor's own binary at
 # build time and never redistributes it. Arch has no aarch64 Obsidian; upstream ships one.
 pkgname=obsidian-arm-bin
-_pkgname=obsidian
 pkgver=1.13.7
 pkgrel=1
 pkgdesc="A powerful knowledge base that works on local Markdown files (official ARM64 build)"
@@ -20,25 +19,26 @@ package() {
   cd "$srcdir/obsidian-${pkgver}-arm64"
   install -dm755 "$pkgdir/opt/obsidian"
   cp -a ./* "$pkgdir/opt/obsidian/"
-  # Launcher wrapper: under Parallels' virtio-gpu (software rendering) Electron's GPU
-  # child process crashes; disabling it keeps the app stable. Flags proven on this stack.
-  install -Dm755 /dev/stdin "$pkgdir/usr/bin/obsidian" <<'WRAP'
+
+  # Launcher wrapper. Under Parallels' virtio-gpu (software rendering) Electron's separate GPU
+  # process crashes; --in-process-gpu folds it into the main process, and --no-sandbox is
+  # required for Electron to start in this guest. Flags verified on this exact stack.
+  install -dm755 "$pkgdir/usr/bin"
+  cat > "$pkgdir/usr/bin/obsidian" <<'WRAP'
 #!/bin/sh
 export LIBGL_ALWAYS_SOFTWARE=1
 exec /opt/obsidian/obsidian \
-  --ozone-platform-hint=auto \
-  --disable-gpu --disable-gpu-compositing --disable-software-rasterizer \
+  --no-sandbox --ozone-platform=wayland \
+  --disable-gpu --disable-gpu-compositing --in-process-gpu \
   "$@"
 WRAP
+  chmod 755 "$pkgdir/usr/bin/obsidian"
 
-  # icon (the tarball ships obsidian.png at a few resolutions or a single png)
-  for res in 256 128 64; do
-    if [ -f "obsidian.png" ]; then
-      install -Dm644 "obsidian.png" "$pkgdir/usr/share/icons/hicolor/${res}x${res}/apps/obsidian.png"
-    fi
-  done
+  [ -f obsidian.png ] && install -Dm644 obsidian.png \
+    "$pkgdir/usr/share/icons/hicolor/256x256/apps/obsidian.png" || true
 
-  install -Dm644 /dev/stdin "$pkgdir/usr/share/applications/obsidian.desktop" <<'DESK'
+  install -dm755 "$pkgdir/usr/share/applications"
+  cat > "$pkgdir/usr/share/applications/obsidian.desktop" <<'DESK'
 [Desktop Entry]
 Type=Application
 Name=Obsidian
