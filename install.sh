@@ -68,7 +68,7 @@ ok "downloaded"
 
 step "Verifying integrity"
 GOT=$(shasum -a 256 "$ZIP" | awk '{print $1}')
-[[ $GOT == "$SHA" ]] || die "sha256 mismatch — corrupted or tampered download. Delete $ZIP and retry."
+[[ $GOT == "$SHA" ]] || { rm -f "$ZIP"; die "Checksum mismatch — the download was corrupted or tampered with (removed it). Re-run to try again."; }
 ok "sha256 verified"
 if [[ -n $PUBKEY ]] && command -v minisign >/dev/null 2>&1; then
   curl -fsSL -o "$ZIP.minisig" "$URL.minisig" 2>/dev/null &&
@@ -79,8 +79,12 @@ fi
 
 # ---------- unpack + import ----------
 step "Unpacking"
-[[ -d "$DEST/Omarchy.pvm" ]] && die "$DEST/Omarchy.pvm already exists — remove or rename it first."
-unzip -q "$ZIP" -d "$DEST"
+[[ -d "$DEST/Omarchy.pvm" ]] && die "$DEST/Omarchy.pvm already exists — remove or rename it first, then re-run."
+if ! unzip -tq "$ZIP" >/dev/null 2>&1; then
+  rm -f "$ZIP"
+  die "The downloaded file isn't a valid archive (removed it). Re-run to download again."
+fi
+unzip -q "$ZIP" -d "$DEST" >/dev/null || die "Could not unpack the image into $DEST."
 ok "unpacked to $DEST/Omarchy.pvm"
 rm -f "$ZIP" "$ZIP.minisig"
 

@@ -62,22 +62,39 @@ say "First boot: creating this machine's identity..."
 regen_identity
 
 YOLO=1
-if [[ -x $G ]]; then
-  say ""
-  say "Press any key to customize (username, password, hostname)."
-  say "Doing nothing applies safe defaults in 10 seconds."
-  if read -r -s -n 1 -t 10; then YOLO=0; fi
-fi
+say ""
+say "Press any key to customize (username, password, hostname),"
+say "or wait for the quick-start defaults."
+for n in 10 9 8 7 6 5 4 3 2 1; do
+  printf '\r  quick-start in %2d s ... ' "$n"
+  if read -r -s -n 1 -t 1; then YOLO=0; break; fi
+done
+printf '\r%40s\r' ' '   # clear the countdown line
 
 if [[ $YOLO -eq 1 ]]; then
-  PASS=$(tr -dc 'a-z0-9' < /dev/urandom | head -c 10)
-  apply "$DEFAULT_USER" "$PASS" omarchy no yes
+  # Known default so the user can actually sudo on a zero-interaction install. Autologin is on,
+  # so an expired password (passwd -e) would never prompt for a change — instead we drop a
+  # first-login reminder (see reminder file below) and document the default everywhere.
+  apply "$DEFAULT_USER" "$DEFAULT_USER" omarchy no no
+  # Reminder to change the shipped default password. Shows on every interactive shell while the
+  # marker exists; a passwd() wrapper removes the marker on a successful change. No fragile
+  # password-guessing — the wrapper knows change succeeded from passwd's own exit code.
+  install -d -m 755 /etc/profile.d
+  install -d /var/lib/omarchy-parallels
+  touch /var/lib/omarchy-parallels/default-password
+  cat > /etc/profile.d/zz-omarchy-default-password.sh <<'REMIND'
+if [[ -n ${PS1:-} && -f /var/lib/omarchy-parallels/default-password ]]; then
+  printf '\n\033[33m⚠  This VM still uses the default password "omarchy".\033[0m\n'
+  printf '   Run \033[1mpasswd\033[0m to set your own (this notice then stops).\n\n'
+  passwd() { command passwd "$@" && sudo rm -f /var/lib/omarchy-parallels/default-password; }
+fi
+REMIND
   big "Defaults applied"
   say "User:     $DEFAULT_USER"
-  say "Password: $PASS   (you must change it at first use)"
+  say "Password: $DEFAULT_USER   (change it after first login: run 'passwd')"
   say ""
-  say "Write the password down — the desktop starts in 15 seconds."
-  sleep 15
+  say "Starting the desktop..."
+  sleep 6
 else
   while true; do
     USERNAME=$($G input --placeholder "$DEFAULT_USER" --prompt "Username: " --value "$DEFAULT_USER")
