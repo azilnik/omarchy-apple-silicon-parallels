@@ -63,7 +63,7 @@ echo "==> guest-side assertions (via prlctl exec, no sshd) ..."
 MID=$(X 'cat /etc/machine-id' | tr -d '\r\n ')
 [[ -n $MID && $MID != "$BUILDER_MID" ]] && t_ok "machine-id regenerated ($MID)" \
     || t_fail "machine-id NOT regenerated (== builder)"
-if X 'test -s /etc/ssh/ssh_host_ed25519_key.pub' >/dev/null 2>&1; then t_ok "ssh host keys regenerated"; else t_fail "ssh host keys missing"; fi
+if [[ "$(X 'test -s /etc/ssh/ssh_host_ed25519_key.pub && echo OK')" == *OK* ]]; then t_ok "ssh host keys regenerated"; else t_fail "ssh host keys missing"; fi
 AK=$(X 'cat /root/.ssh/authorized_keys /home/*/.ssh/authorized_keys 2>/dev/null | wc -l' | tr -d ' ')
 [[ ${AK:-0} == 0 ]] && t_ok "no authorized_keys shipped" || t_fail "authorized_keys present ($AK lines)"
 
