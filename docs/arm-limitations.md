@@ -33,3 +33,13 @@ omacut** (Qt Quick), **ttfx** (Rust), **tobi-try** (Ruby), **hyprland-preview-sh
 (needs USB passthrough the VM lacks), `obs-studio`/`pinta` (not worth the build cost without GPU
 acceleration), `qemu-user-static-binfmt` (x86 emulation, pointless on ARM), and `omarchy-nvim`
 (redundant — LazyVim is installed).
+
+## Mouse cursor (double-cursor fix)
+
+Parallels' virtual GPU exposes a hardware cursor plane, and the host draws its own pointer over
+it — so a bare Hyprland session shows **two cursors**, most visibly in XWayland/Electron apps
+(Zoom and the like) that push a cursor onto that plane. The image ships
+`~/.config/hypr/looknfeel.lua` with `cursor.no_hardware_cursors = true`, rendering the pointer in
+software so only one shows. (This is the same lever Omarchy uses for the nouveau GPU.) If a future
+Parallels/Hyprland release ever inverts the behavior, flip that boolean; `omarchy-parallels-verify`
+reports the setting under `cursor_fix`.
