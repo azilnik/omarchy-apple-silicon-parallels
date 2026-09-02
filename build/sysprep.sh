@@ -57,9 +57,11 @@ journalctl --rotate >/dev/null 2>&1; journalctl --vacuum-time=1s >/dev/null 2>&1
 rm -rf /var/lib/systemd/coredump/* 2>/dev/null || true
 # Build-user app caches/state that accumulated during the build (test launches of the GUI apps).
 # ~/.cache is hundreds of MB and pure churn; app state (obsidian etc.) is our test pollution.
+# NOTE: \$h is escaped so the loop runs on the guest — this whole block is inside an
+# unquoted <<EOF heredoc, where an unescaped \$h would (wrongly) expand on the build host.
 for h in /root "/home/$BUILD_USER" /home/omarchy; do
-  rm -rf "$h/.cache" "$h/.config/obsidian" "$h/.local/share/obsidian" 2>/dev/null || true
-  rm -f  "$h/.bash_history" "$h/lazy.log" "$h/health.txt" 2>/dev/null || true
+  rm -rf "\$h/.cache" "\$h/.config/obsidian" "\$h/.local/share/obsidian" 2>/dev/null || true
+  rm -f  "\$h/.bash_history" "\$h/lazy.log" "\$h/health.txt" 2>/dev/null || true
 done
 rm -f /etc/NetworkManager/system-connections/* 2>/dev/null || true
 rm -f /etc/sudoers.d/90-build-temp /etc/sudoers.d/20-omarchy-install 2>/dev/null || true
