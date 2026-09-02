@@ -16,6 +16,7 @@ Pick **YOLO** at the prompt (or pass `--yolo`) and the next thing you interact w
 - **Native HiDPI**: 2× rendering matched to your Retina display (5120×2880 on a Studio Display)
 - **Live resize**: drag the Parallels window; the desktop follows at the right scale
 - **First-boot setup**: username, password, hostname — or a 10-second countdown to sensible defaults
+- **Omarchy's apps, rebuilt for ARM**: omacalc, omawrite, omacut, ttfx, the share picker, and Obsidian — packages Omarchy ships x86-only, [built from source for aarch64](packages/)
 - **Verifiable**: run `omarchy-parallels-verify` inside the VM for a machine-readable health report
 
 ## Install
@@ -47,7 +48,7 @@ New to Arch or tiling window managers? Two things save everyone's first ten minu
 ## Known limitations (honesty section)
 
 - **Software rendering.** Parallels' virtio-gpu has no 3D acceleration for Linux ARM guests — fine for real use, but don't judge Omarchy's animation polish here.
-- **13 of 148 packages have no aarch64 build** and are absent, including some of Omarchy's own apps (`omacalc`, `omacut`, `omawrite`, `omarchy-nvim` — LazyVim is preinstalled as the editor instead), plus `obs-studio`, `obsidian`, `pinta`. Details: [docs/arm-limitations.md](docs/arm-limitations.md).
+- **Most of Omarchy's x86-only packages are rebuilt for ARM and ship in the image** — `omacalc`, `omawrite`, `omacut`, `ttfx`, `tobi-try`, the Hyprland share picker, and Obsidian (see [packages/](packages/)). A few are deliberately left out (`asdcontrol` needs USB the VM lacks; `obs-studio`/`pinta` aren't worth their build cost without GPU accel). Full ARM notes: [docs/arm-limitations.md](docs/arm-limitations.md).
 - **`omarchy-update` prints a keyring error on ARM** (`omarchy-keyring` is x86-only). Harmless; the update still works.
 - **A couple of Cmd shortcuts belong to Parallels, not Omarchy** — Cmd+Return (fullscreen) and Cmd+Q (quit) are intercepted before the guest. The image works around Cmd+Return by binding the terminal to Cmd+Ctrl+Return; [docs/keybindings.md](docs/keybindings.md) explains the full picture and the one-time Parallels tweak to get native bindings back.
 - Verified on: M3 (Studio Display). Other machines: see [test/VERIFY.md](test/VERIFY.md) — reports welcome.

@@ -59,6 +59,20 @@ BUID=\$(id -u $BUILD_USER)
 SIG=\$(ls -1t /run/user/\$BUID/hypr 2>/dev/null | head -1)
 [ -n \"\$SIG\" ] && sudo -u $BUILD_USER env HOME=$BUILD_HOME XDG_RUNTIME_DIR=/run/user/\$BUID HYPRLAND_INSTANCE_SIGNATURE=\$SIG hyprctl reload >/dev/null 2>&1 || true"
 
+# Build the aarch64 packages Omarchy ships x86_64-only and install them, so the image is
+# feature-complete. Toolchains are stripped later by sysprep. Skip with OMARCHY_SKIP_EXTRA_PKGS=1.
+if [[ -z ${OMARCHY_SKIP_EXTRA_PKGS:-} ]]; then
+  echo "==> building ARM packages (Omarchy's x86-only apps)"
+  $SSH "sudo -u $BUILD_USER mkdir -p $BUILD_HOME/armbuild/packages"
+  tar -C "$REPO" -czf - packages | $SSH "sudo -u $BUILD_USER tar -C $BUILD_HOME/armbuild -xzf - && chown -R $BUILD_USER:$BUILD_USER $BUILD_HOME/armbuild"
+  # base-devel is already present; build-all installs each pkg via makepkg -si
+  $SSH "printf '%s ALL=(ALL) NOPASSWD: ALL\n' $BUILD_USER > /etc/sudoers.d/95-build; chmod 440 /etc/sudoers.d/95-build"
+  $SSH "sudo -u $BUILD_USER bash -lc 'cd ~/armbuild/packages && bash build-all.sh 2>&1 | tail -3'" || echo "   (some ARM packages failed — non-fatal; see status)"
+  # install everything that built
+  $SSH "sudo -u $BUILD_USER bash -lc 'for p in ~/armbuild/packages/*/*.pkg.tar.*; do sudo pacman -U --noconfirm --needed \"\$p\" >/dev/null 2>&1; done; echo installed extras'"
+  $SSH 'rm -f /etc/sudoers.d/95-build'
+fi
+
 echo "==> revoking temporary sudo grant"
 $SSH 'rm -f /etc/sudoers.d/90-build-temp'
 

@@ -40,6 +40,14 @@ fi
 # ---- login flow: no autologin, no remembered user; OOBE rewrites both ----
 rm -f /etc/sddm.conf.d/30-autologin.conf /var/lib/sddm/state.conf
 
+# ---- strip build-only toolchain (the ARM-built apps are installed; their build deps aren't
+#      needed at runtime). Saves ~500 MB. Runtime deps (qt6, gtk4, ffmpeg) are kept as real
+#      dependencies of the apps, so pacman won't remove them. ----
+pacman -Rns --noconfirm rust >/dev/null 2>&1 || true
+rm -rf /home/omarchy/armbuild "/home/$BUILD_USER/armbuild" 2>/dev/null || true
+rm -f /etc/sudoers.d/95-build 2>/dev/null || true
+pacman -Qtdq 2>/dev/null | pacman -Rns --noconfirm - >/dev/null 2>&1 || true   # orphaned makedeps
+
 # ---- caches, logs, history, leftovers ----
 pacman -Scc --noconfirm >/dev/null 2>&1 || true
 rm -rf /var/cache/pacman/pkg/* /root/prl-tools.iso /root/inside.sh /tmp/* 2>/dev/null || true
