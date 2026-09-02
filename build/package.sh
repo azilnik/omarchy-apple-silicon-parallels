@@ -31,7 +31,8 @@ sed -i '' 's|<VmName>Omarchy</VmName>|<VmName>Omarchy-image</VmName>|' "$CLONE/c
 echo "==> [2/6] registering + booting the clone"
 BEFORE=$(prlctl list -a --no-header 2>/dev/null | awk '{print $1}' | sort)
 open "$CLONE"
-echo "    If Parallels asks 'Copied or Moved?', choose COPIED. Press Play if it doesn't boot."
+echo "    Dismiss Parallels dialogs as they appear: 'Duplicate MAC addresses' -> Create new;"
+echo "    trial nag -> Continue Trial. Press Play if the clone doesn't boot on its own."
 NEW_UUID=""
 for _ in $(seq 1 60); do
   sleep 5
