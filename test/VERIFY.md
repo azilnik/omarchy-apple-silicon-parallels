@@ -10,9 +10,10 @@ titled `verify: vX.Y.Z on <chip> / <display>`.
 5. **HiDPI**: text is crisp, not soft/blurry. ☐ (if soft: View → Retina Resolution → More Space fixed it? ☐)
 6. **Resize**: drag the Parallels window smaller/larger. ☐ desktop reflows within ~3 s ☐ stays crisp
 7. **Fullscreen**: ☐ fills the screen edge-to-edge, no letterboxing
-8. **Health**: open a terminal (Cmd+Option+O → terminal, or Super+Return if forwarded),
+8. **Health**: open a terminal (Cmd+Ctrl+Return),
    run `sudo omarchy-parallels-verify`. ☐ verdict "pass" — paste the JSON in your report
 9. **Update**: run `omarchy-update`. ☐ completes (the ARM keyring warning is expected)
-10. **Password**: ☐ the default-password reminder appears in a terminal; ☐ running `passwd` clears it (YOLO path)
+10. **Keybindings**: ☐ Cmd+Space opens the Omarchy menu ☐ Cmd+Ctrl+Return opens a terminal
+11. **Password**: ☐ the default-password reminder appears in a terminal; ☐ running `passwd` clears it (YOLO path)
 
 Also note: chip, RAM, display(s) + resolution, Parallels version/edition, anything surprising.

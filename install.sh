@@ -140,10 +140,10 @@ else
 fi
 cat <<TIPS
 
-${B}Two things every first-timer needs to know:${N}
+${B}A few things every first-timer needs to know:${N}
   • Omarchy's shortcuts use the ${B}Super${N} key — on your Mac keyboard that's ${B}⌘ Cmd${N}.
-  • ${B}Cmd+Space${N} opens macOS Spotlight, not the Omarchy menu. Use ${B}Cmd+Option+O${N} instead,
-    or forward it in Parallels → Preferences → Shortcuts.
+  • Menu: ${B}Cmd+Space${N}.  Terminal: ${B}Cmd+Ctrl+Return${N}.  All keys: ${B}Cmd+K${N}.
+    (Parallels keeps Cmd+Return for fullscreen — docs/keybindings.md restores native Super+Return.)
   • If the desktop looks soft: View → Retina Resolution → ${B}More Space${N} (it adapts in seconds).
-  • To confirm everything's healthy, open a terminal in the VM and run: ${B}omarchy-parallels-verify${N}
+  • To confirm everything's healthy, open a terminal and run: ${B}omarchy-parallels-verify${N}
 TIPS

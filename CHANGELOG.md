@@ -14,6 +14,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning: [S
 - Pre-publish CI guard against unfilled `OWNER` placeholders
 
 ### Added
+- Mac keybinding compatibility: Linux profile assigned on import (Cmd+Space → menu), terminal on Cmd+Ctrl+Return (repurposes the ARM-dead herdr bind), docs/keybindings.md, verify check
 - Initial image build pipeline (refresh → sysprep → package → release)
 - First-boot OOBE with 10-second YOLO countdown
 - Adaptive HiDPI auto-resize service (scale derived from the advertised mode)

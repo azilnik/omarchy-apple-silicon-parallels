@@ -29,9 +29,9 @@ Requirements: Apple Silicon Mac (M1–M4+), Parallels Desktop (any edition), ~25
 New to Arch or tiling window managers? Two things save everyone's first ten minutes:
 
 - **The `Super` key is `⌘ Cmd`** on your Mac keyboard. Every Omarchy shortcut hint that says "Super" means Cmd.
-- **`Cmd+Space` opens macOS Spotlight**, not the Omarchy menu — macOS grabs it first. Use **`Cmd+Option+O`** for the Omarchy menu, or forward the shortcut in Parallels → Preferences → Shortcuts.
+- **Menu: `Cmd+Space`. Terminal: `Cmd+Ctrl+Return`.** The image assigns Parallels' Linux keyboard profile so Cmd+Space opens the Omarchy menu (not Spotlight); Parallels keeps Cmd+Return for fullscreen, so the terminal ships on Cmd+Ctrl+Return. Full map + how to restore native Super+Return: [docs/keybindings.md](docs/keybindings.md).
 - Default login is **`omarchy` / `omarchy`** on the quick-start (YOLO) path — run **`passwd`** in a terminal to change it.
-- Sanity check: open a terminal and run **`omarchy-parallels-verify`** — it prints a health report and exits green when all is well.
+- Sanity check: open a terminal (**Cmd+Ctrl+Return**) and run **`omarchy-parallels-verify`** — it prints a health report and exits green when all is well.
 
 ## Security & provenance
 
@@ -48,7 +48,7 @@ New to Arch or tiling window managers? Two things save everyone's first ten minu
 - **Software rendering.** Parallels' virtio-gpu has no 3D acceleration for Linux ARM guests — fine for real use, but don't judge Omarchy's animation polish here.
 - **13 of 148 packages have no aarch64 build** and are absent, including some of Omarchy's own apps (`omacalc`, `omacut`, `omawrite`, `omarchy-nvim` — LazyVim is preinstalled as the editor instead), plus `obs-studio`, `obsidian`, `pinta`. Details: [docs/arm-limitations.md](docs/arm-limitations.md).
 - **`omarchy-update` prints a keyring error on ARM** (`omarchy-keyring` is x86-only). Harmless; the update still works.
-- **Cmd+Space opens Spotlight**, not the Omarchy menu — macOS grabs it first. Use **Cmd+Option+O** (bound in the image) or forward the shortcut in Parallels → Preferences → Shortcuts.
+- **A couple of Cmd shortcuts belong to Parallels, not Omarchy** — Cmd+Return (fullscreen) and Cmd+Q (quit) are intercepted before the guest. The image works around Cmd+Return by binding the terminal to Cmd+Ctrl+Return; [docs/keybindings.md](docs/keybindings.md) explains the full picture and the one-time Parallels tweak to get native bindings back.
 - Verified on: M3 (Studio Display). Other machines: see [test/VERIFY.md](test/VERIFY.md) — reports welcome.
 
 ## Uninstall
