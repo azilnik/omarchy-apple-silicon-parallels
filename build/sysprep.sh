@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck disable=SC2016  # remote-side expressions expand on the guest
 # build/sysprep.sh — strip identity/secrets/caches from the builder VM and arm first-boot.
 #
 # DESTRUCTIVE to the running guest's identity: intended to run against a THROWAWAY CLONE

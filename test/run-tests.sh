@@ -13,7 +13,6 @@
 
 set -uo pipefail
 ZIP=${1:?usage: run-tests.sh <image.zip>}
-REPO="$(cd "$(dirname "$0")/.." && pwd)"
 TDIR="$HOME/Parallels/omarchy-parallels-test"
 PASS=0; FAIL=0
 t_ok()   { echo "  ✓ $1"; PASS=$((PASS+1)); }

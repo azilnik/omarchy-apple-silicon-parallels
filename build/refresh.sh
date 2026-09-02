@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck disable=SC2016  # remote-side expressions are meant to expand on the guest, not the host
 # build/refresh.sh — bring the builder VM current and install the guest payload, then gate on verify.
 #
 # Runs on the Mac host against the builder VM over SSH (the omarchy-ssh wrapper).
@@ -17,7 +18,9 @@ echo "==> builder user: $BUILD_USER"
 
 echo "==> system update (omarchy-update -y with known ARM workarounds)"
 # Workaround 1: sudo -v prompts even under NOPASSWD when a passworded wheel rule also matches.
-$SSH "printf 'Defaults:%s !authenticate\n%s ALL=(ALL:ALL) NOPASSWD: ALL\n' '$BUILD_USER' '$BUILD_USER' > /etc/sudoers.d/90-build-temp; chmod 440 /etc/sudoers.d/90-build-temp"
+# (Pipe the file over stdin — inline printf through the ssh arg layer mangles the content.)
+printf 'Defaults:%s !authenticate\n%s ALL=(ALL:ALL) NOPASSWD: ALL\n' "$BUILD_USER" "$BUILD_USER" \
+  | $SSH 'cat > /etc/sudoers.d/90-build-temp; chmod 440 /etc/sudoers.d/90-build-temp; visudo -cf /etc/sudoers.d/90-build-temp'
 # Workaround 2: omarchy-update-restart runs a gum reboot prompt despite -y; run detached and reap.
 $SSH "setsid nohup sudo -u $BUILD_USER -i bash -c 'omarchy-update -y > /tmp/build-update.log 2>&1; echo DONE-\$? >> /tmp/build-update.log' >/dev/null 2>&1 < /dev/null & echo launched"
 for _ in $(seq 1 240); do

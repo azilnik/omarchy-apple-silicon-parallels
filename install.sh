@@ -95,11 +95,12 @@ done
 ok "VM registered"
 
 # ---------- post-import (HiDPI + notes) ----------
+QUIET_FLAG=(); [[ $YOLO -eq 1 ]] && QUIET_FLAG=(--quiet)
 SELF_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd || echo "")"
 if [[ -n $SELF_DIR && -x "$SELF_DIR/host/post-import.sh" ]]; then
-  "$SELF_DIR/host/post-import.sh" $([[ $YOLO -eq 1 ]] && echo --quiet)
+  "$SELF_DIR/host/post-import.sh" "${QUIET_FLAG[@]}"
 else
-  curl -fsSL "${MANIFEST_URL%/latest.json}/post-import.sh" | bash -s -- $([[ $YOLO -eq 1 ]] && echo --quiet) ||
+  curl -fsSL "${MANIFEST_URL%/latest.json}/post-import.sh" | bash -s -- "${QUIET_FLAG[@]}" ||
     note "post-import step unavailable — set HiDPI by hand: View → Retina Resolution → More Space"
 fi
 
