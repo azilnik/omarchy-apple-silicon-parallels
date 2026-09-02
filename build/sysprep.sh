@@ -30,12 +30,12 @@ rm -f /var/lib/dbus/machine-id
 passwd -l root >/dev/null
 passwd -l "$BUILD_USER" >/dev/null 2>&1 || true
 
-# ---- normalize user back to the shipped placeholder ----
-if [[ "$BUILD_USER" != omarchy ]]; then
-  usermod -l omarchy "$BUILD_USER"
-  groupmod -n omarchy "$BUILD_USER" 2>/dev/null || true
-  usermod -d /home/omarchy -m omarchy
-fi
+# ---- record the build user for first-boot to rename ----
+# We can't rename the build user here: it's logged in via autologin, so usermod -l fails
+# ("user is currently used by process"). Instead, first-boot does the rename — it runs
+# BEFORE sddm, when no one is logged in. Just record who to rename.
+install -d /var/lib/omarchy-parallels
+echo "$BUILD_USER" > /var/lib/omarchy-parallels/build-user
 
 # ---- login flow: no autologin, no remembered user; OOBE rewrites both ----
 rm -f /etc/sddm.conf.d/30-autologin.conf /var/lib/sddm/state.conf

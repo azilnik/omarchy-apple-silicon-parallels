@@ -13,6 +13,12 @@ MARKER=/var/lib/omarchy-parallels/firstboot-pending
 DEFAULT_USER=omarchy
 [[ -f $MARKER ]] || exit 0
 
+# The user the image was built with (sysprep couldn't rename it — it was logged in). We rename
+# it here, before sddm, when it isn't. Fall back to the sole human UID-1000 account.
+SRC_USER=$(cat /var/lib/omarchy-parallels/build-user 2>/dev/null)
+[[ -z ${SRC_USER:-} ]] && SRC_USER=$(getent passwd 1000 | cut -d: -f1)
+SRC_USER=${SRC_USER:-omarchy}
+
 export TERM=${TERM:-linux}
 G=/usr/bin/gum
 
@@ -32,9 +38,10 @@ regen_identity() {
 apply() { # apply <username> <password> <hostname> <enable_ssh:yes|no> <expire_pw:yes|no>
   local user=$1 pass=$2 host=$3 want_ssh=$4 expire=$5
 
-  if [[ $user != "$DEFAULT_USER" ]] && id "$DEFAULT_USER" >/dev/null 2>&1; then
-    usermod -l "$user" "$DEFAULT_USER"
-    groupmod -n "$user" "$DEFAULT_USER" 2>/dev/null || true
+  # Rename the build user to the chosen name (no one is logged in yet at first-boot time).
+  if [[ $user != "$SRC_USER" ]] && id "$SRC_USER" >/dev/null 2>&1 && ! id "$user" >/dev/null 2>&1; then
+    usermod -l "$user" "$SRC_USER"
+    groupmod -n "$user" "$SRC_USER" 2>/dev/null || true
     usermod -d "/home/$user" -m "$user"
   fi
   echo "$user:$pass" | chpasswd
