@@ -43,6 +43,15 @@ apply() { # apply <username> <password> <hostname> <enable_ssh:yes|no> <expire_p
     usermod -l "$user" "$SRC_USER"
     groupmod -n "$user" "$SRC_USER" 2>/dev/null || true
     usermod -d "/home/$user" -m "$user"
+    # usermod -m moves the home but leaves ABSOLUTE symlinks pointing at the old path
+    # (wallpaper, nvim treesitter queries, mise configs, gtk bookmarks…). Repoint them,
+    # else e.g. the desktop background is a dangling link and renders black.
+    while IFS= read -r link; do
+      target=$(readlink "$link")
+      case "$target" in
+        "/home/$SRC_USER/"*) ln -sf "/home/$user/${target#/home/$SRC_USER/}" "$link" ;;
+      esac
+    done < <(find "/home/$user" -xtype l 2>/dev/null)
   fi
   echo "$user:$pass" | chpasswd
   [[ $expire == yes ]] && passwd -e "$user" >/dev/null 2>&1

@@ -52,15 +52,20 @@ pacman -Qtdq 2>/dev/null | pacman -Rns --noconfirm - >/dev/null 2>&1 || true   #
 pacman -Scc --noconfirm >/dev/null 2>&1 || true
 rm -rf /var/cache/pacman/pkg/* /root/prl-tools.iso /root/inside.sh /tmp/* 2>/dev/null || true
 journalctl --rotate >/dev/null 2>&1; journalctl --vacuum-time=1s >/dev/null 2>&1
-# Coredumps from build-time app crashes ship in the image otherwise, and omarchy-crash-watch
-# surfaces them as "Process crashed" notifications on the recipient's first boot. Clear them.
+# The persistent journal lives under a per-machine-id directory. first-boot regenerates the
+# machine-id, so the build's journal dir (full of build-time coredump records) would otherwise
+# ship intact and omarchy-crash-watch would replay those "Process crashed" notifications.
+# Removing the whole tree is the only reliable clear — vacuum leaves the active file.
+rm -rf /var/log/journal/* 2>/dev/null || true
+# Coredumps themselves.
 rm -rf /var/lib/systemd/coredump/* 2>/dev/null || true
-# Build-user app caches/state that accumulated during the build (test launches of the GUI apps).
-# ~/.cache is hundreds of MB and pure churn; app state (obsidian etc.) is our test pollution.
+# Build-user caches AND omarchy's own transient state (the notification queue holds the actual
+# "obsidian crashed" toasts from build-time testing; indicators/current are regenerated).
 # NOTE: \$h is escaped so the loop runs on the guest — this whole block is inside an
 # unquoted <<EOF heredoc, where an unescaped \$h would (wrongly) expand on the build host.
 for h in /root "/home/$BUILD_USER" /home/omarchy; do
   rm -rf "\$h/.cache" "\$h/.config/obsidian" "\$h/.local/share/obsidian" 2>/dev/null || true
+  rm -rf "\$h/.local/state/omarchy/notifications" "\$h/.local/state/omarchy/indicators" 2>/dev/null || true
   rm -f  "\$h/.bash_history" "\$h/lazy.log" "\$h/health.txt" 2>/dev/null || true
 done
 rm -f /etc/NetworkManager/system-connections/* 2>/dev/null || true
