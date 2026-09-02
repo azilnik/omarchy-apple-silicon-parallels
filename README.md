@@ -42,6 +42,7 @@ New to Arch or tiling window managers? Two things save everyone's first ten minu
 - Parallels Tools (userspace only — clipboard, shared folders, time sync) is preinstalled and runs under *your* licensed Parallels install. Object to redistributed Tools binaries? The rebuild doc has a Tools-free path.
 - **Where the bytes come from:** code and this page live on GitHub; the image itself is served from `dl.omarchy-parallels.zilnik.me` (Cloudflare R2, maintainer-controlled) because GitHub caps release assets at 2 GiB. The checksum in the GitHub-hosted `latest.json` and the minisign signature are what bind the two together — verify them (the installer does) and the hosting location doesn't require trust.
 - Report vulnerabilities via [SECURITY.md](SECURITY.md).
+- This project was built by AI under human direction — see [AI-DISCLOSURE.md](AI-DISCLOSURE.md).
 
 ## Known limitations (honesty section)
 
