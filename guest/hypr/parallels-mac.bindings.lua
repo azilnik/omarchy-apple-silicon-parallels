@@ -1,0 +1,22 @@
+-- ── Parallels / Mac keyboard compatibility ────────────────────────────────────
+-- Appended to ~/.config/hypr/bindings.lua by the build. Idempotent (guarded by the
+-- BEGIN/END markers the installer greps for).
+--
+-- Background: on an Apple Silicon Mac, Parallels maps Cmd→Super, Option→Alt, Ctrl→Ctrl,
+-- and (with the "Linux" keyboard profile) forwards macOS *system* shortcuts like
+-- Cmd+Space and Cmd+Tab to the guest — so Omarchy's Super+Space menu works natively.
+--
+-- What it does NOT forward are Parallels' own *application* shortcuts, which it grabs
+-- first: Cmd+Return (= Enter/Exit Full Screen) and Cmd+Q (= Quit). Cmd+Return is the
+-- painful one — it steals Omarchy's Super+Return (open terminal). Two ways to get the
+-- terminal back:
+--   1. This block: `herdr` has no aarch64 build, so its Super+Ctrl+Return binding is
+--      dead weight on ARM. Reuse it for the terminal — Cmd+Ctrl+Return is a two-modifier
+--      combo Parallels always forwards, so it works with zero host configuration.
+--   2. Native Super+Return: disable Parallels' fullscreen shortcut in
+--      Parallels → Preferences → Shortcuts (see docs/keybindings.md). Then Cmd+Return
+--      reaches Omarchy again. This block leaves the native binding untouched for that case.
+-- ── BEGIN omarchy-parallels mac keybinds ──
+hl.unbind("SUPER + CTRL + RETURN")               -- was Herdr (no aarch64 build)
+o.bind("SUPER + CTRL + RETURN", "Terminal (Mac-safe)", { omarchy = "terminal" })
+-- ── END omarchy-parallels mac keybinds ──

@@ -21,19 +21,29 @@ if [[ -z $UUID ]]; then
   exit 0
 fi
 
-# Best-effort: undocumented key observed on Parallels 27 (ConsoleWidgetScaleFactorWithDynres=2
-# is what View → Retina Resolution → More Space writes). Harmless if ignored by other versions.
+# HiDPI: undocumented key observed on Parallels 27 (ConsoleWidgetScaleFactorWithDynres=2 is what
+# View → Retina Resolution → More Space writes). Harmless if ignored by other versions.
 defaults write "com.parallels.Parallels Desktop" "{$UUID}.0.ConsoleWidgetScaleFactorWithDynres" -int 2 2>/dev/null || true
+
+# Keyboard: assign the "Linux" profile to this VM. That profile forwards macOS *system*
+# shortcuts (Cmd+Space, Cmd+Tab) to the guest, so Omarchy's Super+Space menu etc. work
+# natively. This assignment is keyed by VM UUID, which regenerates on import — so it can't
+# ship in the image and has to be (re)written here. Parallels reads it on next launch.
+defaults write "com.parallels.Parallels Desktop" "User Preferences.Keyboard.Profile Assigns.{$UUID}" -string "Linux" 2>/dev/null || true
 
 if [[ $QUIET -eq 0 ]]; then
   cat <<EOF
 
-    HiDPI: attempted automatically. If the desktop looks soft or tiny, set it by hand:
-      Parallels menu bar → View → Retina Resolution → More Space
-      (the guest adapts on its own within a few seconds — no reboot needed)
+    HiDPI: set automatically. If the desktop still looks soft, do it by hand:
+      Parallels menu bar → View → Retina Resolution → More Space  (adapts in seconds, no reboot)
 
-    Keyboard: macOS keeps Cmd+Space (Spotlight). Inside Omarchy use Cmd+Option+O for
-    the menu, or forward the shortcut: Parallels → Preferences → Shortcuts.
+    Keyboard: the Linux shortcut profile is assigned, so Cmd+Space opens the Omarchy menu
+    (not Spotlight) while the VM is focused. Two Parallels app shortcuts still win over the
+    guest — if you want them back in Omarchy, turn them off once in
+    Parallels → Preferences → Shortcuts → Application Shortcuts:
+      • Cmd+Return  (Enter Full Screen)  — frees Omarchy's Super+Return = terminal
+      • Cmd+Q       (Quit)               — frees Omarchy's Super+Q = close window
+    Until then, the image binds a Mac-safe terminal on Cmd+Ctrl+Return that always works.
 EOF
 fi
 exit 0

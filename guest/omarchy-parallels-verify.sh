@@ -71,6 +71,12 @@ check pacman_sync "$REPO_OK" "repo databases reachable"
 # --- parallels tools ---
 check prltoolsd "$([[ $(systemctl is-active prltoolsd 2>/dev/null) == active ]] && echo 0 || echo 1)" "$(systemctl is-active prltoolsd 2>/dev/null)"
 
+# --- mac keybinding compatibility drop-in present ---
+KB_OK=1; KB_HOME=$(getent passwd "${DESKTOP_USER:-omarchy}" 2>/dev/null | cut -d: -f6)
+[[ -n $KB_HOME && -f "$KB_HOME/.config/hypr/bindings.lua" ]] && \
+  grep -q "omarchy-parallels mac keybinds" "$KB_HOME/.config/hypr/bindings.lua" && KB_OK=0
+check mac_keybinds "$KB_OK" "terminal-on-ctrl-return drop-in"
+
 # --- systemd overall ---
 FAILED_UNITS=$(systemctl --failed --no-legend --no-pager 2>/dev/null | wc -l | tr -d ' ')
 check no_failed_units "$([[ $FAILED_UNITS -eq 0 ]] && echo 0 || echo 1)" "failed=$FAILED_UNITS"

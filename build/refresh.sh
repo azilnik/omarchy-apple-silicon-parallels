@@ -49,6 +49,16 @@ BUID=\$(id -u $BUILD_USER)
 sudo -u $BUILD_USER XDG_RUNTIME_DIR=/run/user/\$BUID systemctl --user daemon-reload
 sudo -u $BUILD_USER XDG_RUNTIME_DIR=/run/user/\$BUID systemctl --user enable --now parallels-autoresize.service"
 
+# Mac/Parallels keybinding compatibility — append the drop-in to the user's bindings.lua,
+# idempotently (remove any prior block between our markers first, then re-append).
+BINDS="$BUILD_HOME/.config/hypr/bindings.lua"
+$SSH "sed -i '/── BEGIN omarchy-parallels mac keybinds ──/,/── END omarchy-parallels mac keybinds ──/d' '$BINDS' 2>/dev/null; true"
+$SSH "cat >> '$BINDS'" < "$REPO/guest/hypr/parallels-mac.bindings.lua"
+$SSH "chown $BUILD_USER:$BUILD_USER '$BINDS'
+BUID=\$(id -u $BUILD_USER)
+SIG=\$(ls -1t /run/user/\$BUID/hypr 2>/dev/null | head -1)
+[ -n \"\$SIG\" ] && sudo -u $BUILD_USER env HOME=$BUILD_HOME XDG_RUNTIME_DIR=/run/user/\$BUID HYPRLAND_INSTANCE_SIGNATURE=\$SIG hyprctl reload >/dev/null 2>&1 || true"
+
 echo "==> revoking temporary sudo grant"
 $SSH 'rm -f /etc/sudoers.d/90-build-temp'
 
