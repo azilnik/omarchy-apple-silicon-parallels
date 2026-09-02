@@ -1,0 +1,48 @@
+name: Verification report
+description: Report that you installed and tested the image on your Mac (helps build the "verified on" table)
+title: "verify: vX.Y.Z on <chip> / <display>"
+labels: ["verification"]
+body:
+  - type: input
+    id: version
+    attributes:
+      label: Image version
+      description: From latest.json, or the filename you downloaded
+      placeholder: "0.1.0"
+    validations:
+      required: true
+  - type: input
+    id: hardware
+    attributes:
+      label: Mac + display
+      placeholder: "M4 Pro, 24 GB, Studio Display 5120×2880"
+    validations:
+      required: true
+  - type: input
+    id: parallels
+    attributes:
+      label: Parallels version + edition
+      placeholder: "27.0.1, Standard (trial)"
+    validations:
+      required: true
+  - type: dropdown
+    id: outcome
+    attributes:
+      label: Outcome
+      options:
+        - Everything worked
+        - Worked with minor issues (describe below)
+        - Failed (describe below)
+    validations:
+      required: true
+  - type: textarea
+    id: verify
+    attributes:
+      label: omarchy-parallels-verify output
+      description: "Run `sudo omarchy-parallels-verify` in the VM and paste the JSON"
+      render: json
+  - type: textarea
+    id: checklist
+    attributes:
+      label: Checklist notes
+      description: "Anything from test/VERIFY.md that didn't pass, plus anything surprising"
