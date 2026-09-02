@@ -5,7 +5,7 @@
 A ready-to-run Omarchy 4 (Arch Linux ARM + Hyprland) virtual machine for Apple Silicon Macs, with native HiDPI, a desktop that follows the Parallels window as you resize it, and a 60-second first-boot setup. Works on every Parallels edition, including Standard and the free trial.
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/YOUR-GH-USER/omarchy-parallels/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/azilnik/omarchy-parallels/main/install.sh | bash
 ```
 
 Pick **YOLO** at the prompt (or pass `--yolo`) and the next thing you interact with is the Omarchy desktop.

@@ -1,7 +1,7 @@
 #!/bin/bash
 # omarchy-parallels installer — get Omarchy running in Parallels on an Apple Silicon Mac.
 #
-#   curl -fsSL https://raw.githubusercontent.com/YOUR-GH-USER/omarchy-parallels/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/azilnik/omarchy-parallels/main/install.sh | bash
 #
 # Interactive by default; `--yolo` (or choosing YOLO at the menu) runs fully headless:
 # download → verify → import → HiDPI pref → boot, with the in-guest first-boot applying
