@@ -23,6 +23,8 @@ builds them on the ARM builder VM.
 | **omacut** | Qt Quick + ffmpeg video trimmer | ✅ builds, links clean |
 | **obsidian-arm-bin** | Obsidian, official ARM64 build | ✅ builds, **renders** (needs the shipped software-GL wrapper) |
 
+![omacalc on ARM](omacalc-arm.png)
+
 Seven of the thirteen — every one that's actually useful in the VM.
 
 ## Deliberately not built

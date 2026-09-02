@@ -14,6 +14,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning: [S
 - Pre-publish CI guard against unfilled `OWNER` placeholders
 
 ### Added
+- ARM package builds: 7 of Omarchy's 13 x86-only packages rebuilt for aarch64 and shipped in the image — omacalc/omawrite/omacut (Qt), ttfx (Rust), tobi-try (Ruby), hyprland-preview-share-picker (Rust+gtk4), Obsidian (official ARM64 + software-GL wrapper). See packages/.
+- AI disclosure (AI-DISCLOSURE.md)
 - Mac keybinding compatibility: Linux profile assigned on import (Cmd+Space → menu), terminal on Cmd+Ctrl+Return (repurposes the ARM-dead herdr bind), docs/keybindings.md, verify check
 - Initial image build pipeline (refresh → sysprep → package → release)
 - First-boot OOBE with 10-second YOLO countdown
