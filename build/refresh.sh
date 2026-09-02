@@ -20,12 +20,13 @@ echo "==> system update (omarchy-update -y with known ARM workarounds)"
 $SSH "printf 'Defaults:%s !authenticate\n%s ALL=(ALL:ALL) NOPASSWD: ALL\n' '$BUILD_USER' '$BUILD_USER' > /etc/sudoers.d/90-build-temp; chmod 440 /etc/sudoers.d/90-build-temp"
 # Workaround 2: omarchy-update-restart runs a gum reboot prompt despite -y; run detached and reap.
 $SSH "setsid nohup sudo -u $BUILD_USER -i bash -c 'omarchy-update -y > /tmp/build-update.log 2>&1; echo DONE-\$? >> /tmp/build-update.log' >/dev/null 2>&1 < /dev/null & echo launched"
-for _ in $(seq 1 120); do
+for _ in $(seq 1 240); do
   $SSH 'grep -q "^DONE-" /tmp/build-update.log 2>/dev/null' && break
-  # the only thing left running after "mise" completes is the reboot confirm — reap it
-  if $SSH 'grep -qa "All tools are up to date\|nothing to do" /tmp/build-update.log 2>/dev/null && pgrep -f "gum confirm" >/dev/null'; then
-    $SSH 'pkill -f "gum confirm"; pkill -f "bin/omarchy-update" ' || true
-    break
+  # Reap ONLY the final reboot confirm: a gum prompt with the log quiet for 60s+.
+  # (Never match on log content — pacman prints "nothing to do" early in every run.)
+  if $SSH 'pgrep -f "gum confirm" >/dev/null && [ $(( $(date +%s) - $(stat -c %Y /tmp/build-update.log) )) -ge 60 ]'; then
+    $SSH 'pkill -f "gum confirm"' || true
+    sleep 5
   fi
   sleep 15
 done
