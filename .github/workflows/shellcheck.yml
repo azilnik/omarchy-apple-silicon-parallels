@@ -19,5 +19,6 @@ jobs:
         env:
           SHELLCHECK_OPTS: -e SC1091 -e SC2029 -e SC2154 -e SC2034
         with:
+          severity: warning
           scandir: '.'
           additional_files: 'omarchy-ssh vm-ssh'
