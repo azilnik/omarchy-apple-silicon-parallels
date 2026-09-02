@@ -1,0 +1,19 @@
+[Unit]
+Description=Omarchy Parallels first-boot setup
+ConditionPathExists=/var/lib/omarchy-parallels/firstboot-pending
+After=systemd-user-sessions.service getty@tty1.service
+Before=sddm.service
+Conflicts=getty@tty1.service
+
+[Service]
+Type=oneshot
+StandardInput=tty
+StandardOutput=tty
+TTYPath=/dev/tty1
+TTYReset=yes
+TTYVHangup=yes
+ExecStart=/usr/local/bin/omarchy-parallels-firstboot
+RemainAfterExit=no
+
+[Install]
+WantedBy=multi-user.target

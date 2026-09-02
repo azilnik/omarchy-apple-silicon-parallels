@@ -1,0 +1,27 @@
+#!/bin/bash
+# build/vm-ssh — SSH into a Parallels guest, resolving its current IP from the DHCP leases.
+#
+# Keyed by guest MAC so the build can target either the builder VM or a freshly imported
+# clone (which receives a new MAC on "Copied" import — the reason a fixed wrapper is unsafe).
+#
+#   VM_MAC=001c42...   which guest (required; lowercase hex, no colons)
+#   VM_KEY=~/.ssh/...  identity file (default ~/.ssh/omarchy_vm)
+#   VM_PORTS="22 11838" ports to try in order
+
+set -uo pipefail
+MAC=${VM_MAC:?vm-ssh: set VM_MAC (lowercase hex, no colons)}
+KEY=${VM_KEY:-$HOME/.ssh/omarchy_vm}
+LEASES=/Library/Preferences/Parallels/parallels_dhcp_leases
+
+IP=$(awk -F'[="]' -v mac="$MAC" '$0 ~ mac {split($3,a,","); print a[1]" "$1}' "$LEASES" 2>/dev/null \
+     | sort -rn | head -1 | awk '{print $2}')
+[[ -n $IP ]] || { echo "vm-ssh: no DHCP lease for MAC $MAC" >&2; exit 1; }
+
+for P in ${VM_PORTS:-22 11838}; do
+  if nc -z -w 2 "$IP" "$P" 2>/dev/null; then
+    exec ssh -i "$KEY" -p "$P" \
+      -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR \
+      -o ConnectTimeout=8 "root@$IP" "$@"
+  fi
+done
+echo "vm-ssh: no ssh port open on $IP" >&2; exit 1
