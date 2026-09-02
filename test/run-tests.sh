@@ -6,7 +6,7 @@
 # boots it, lets the YOLO first-boot run, then asserts every sysprep + first-boot
 # invariant from *inside* the guest via `prlctl exec` — no sshd needed (YOLO leaves it off).
 #
-# Usage: test/run-tests.sh dist/omarchy-apple-silicon-vm-vX.Y.Z.zip
+# Usage: test/run-tests.sh dist/omarchy-apple-silicon-parallels-vX.Y.Z.zip
 
 set -uo pipefail
 ZIP=${1:?usage: run-tests.sh <image.zip>}
@@ -87,8 +87,17 @@ else t_fail "wallpaper link broken (desktop would render black)"; fi
 # THE crash-toast bug: notification queue + coredumps must be empty
 NQ=$(X 'ls /home/omarchy/.local/state/omarchy/notifications/*.json 2>/dev/null | wc -l' | tr -d ' ')
 [[ ${NQ:-0} == 0 ]] && t_ok "notification queue empty (no replayed crash toasts)" || t_fail "$NQ queued notifications shipped"
+# Coredumps: the sysprep machine-id fix should stop quickshell's cold-start crash-loop, but the
+# first-boot cleanup one-shot is the safety net — it clears any coredumps ~45s after the desktop
+# settles. Wait for that one-shot to finish (marker cleared), then require zero coredumps.
+CLEAN=0
+for _ in $(seq 1 24); do
+  [[ "$(X 'test ! -f /var/lib/omarchy-parallels/cleanup-pending && echo GONE')" == *GONE* ]] && { CLEAN=1; break; }
+  sleep 5
+done
 CD=$(X 'ls /var/lib/systemd/coredump/* 2>/dev/null | wc -l' | tr -d ' ')
-[[ ${CD:-0} == 0 ]] && t_ok "no coredumps shipped" || t_fail "$CD coredumps shipped"
+if [[ ${CD:-0} == 0 ]]; then t_ok "no coredumps ($([[ $CLEAN -eq 1 ]] && echo 'cleanup one-shot ran' || echo 'none produced'))"
+else t_fail "$CD coredumps remain (cleanup ran=$CLEAN)"; fi
 JCRASH=$(X 'journalctl -b -1 -q 2>/dev/null | grep -c "Process.*dumped core" 2>/dev/null' | tr -d ' ')
 [[ ${JCRASH:-0} == 0 ]] && t_ok "no crash records in prior-boot journal" || echo "  · $JCRASH crash records in old journal (pre-regen boot; cosmetic)"
 

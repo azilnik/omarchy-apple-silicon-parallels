@@ -36,10 +36,11 @@ done
 $SSH 'tail -2 /tmp/build-update.log' || true
 
 echo "==> installing guest payload"
-for f in omarchy-parallels-verify omarchy-parallels-autoresize omarchy-parallels-firstboot; do
+for f in omarchy-parallels-verify omarchy-parallels-autoresize omarchy-parallels-firstboot omarchy-parallels-cleanup; do
   $SSH "cat > /usr/local/bin/$f && chmod 755 /usr/local/bin/$f" < "$REPO/guest/$f.sh"
 done
 $SSH 'cat > /etc/systemd/system/omarchy-parallels-firstboot.service' < "$REPO/guest/omarchy-parallels-firstboot.service"
+$SSH 'cat > /etc/systemd/system/omarchy-parallels-cleanup.service' < "$REPO/guest/omarchy-parallels-cleanup.service"
 BUILD_HOME=$($SSH "getent passwd $BUILD_USER | cut -d: -f6")
 $SSH "install -d -o $BUILD_USER -g $BUILD_USER $BUILD_HOME/.config/systemd/user"
 $SSH "cat > $BUILD_HOME/.config/systemd/user/parallels-autoresize.service && chown $BUILD_USER:$BUILD_USER $BUILD_HOME/.config/systemd/user/parallels-autoresize.service" < "$REPO/guest/parallels-autoresize.service"
@@ -64,6 +65,13 @@ LNF="$BUILD_HOME/.config/hypr/looknfeel.lua"
 $SSH "install -Dm644 /usr/share/omarchy/config/hypr/looknfeel.lua '$LNF'"
 $SSH "cat >> '$LNF'" < "$REPO/guest/hypr/parallels-cursor.looknfeel.lua"
 $SSH "chown $BUILD_USER:$BUILD_USER '$LNF'"
+
+# Quiet the console: the kernel cmdline has no quiet/loglevel, so netfilter/ufw messages (notably
+# cups-browsed's mDNS printer discovery being blocked on :5353) flood tty1 — which floods the
+# first-boot OOBE screen AND drags userspace boot to minutes (console printk is synchronous+slow).
+$SSH "E=/boot/loader/entries/omarchy.conf; [ -f \$E ] && { grep -q 'loglevel=' \$E || sed -i 's|^options .*|& quiet loglevel=3|' \$E; }"
+# A VM has no printers to auto-discover; cups-browsed's mDNS is the flood source and a boot-time sink.
+$SSH "systemctl disable cups-browsed.service >/dev/null 2>&1 || true"
 
 # one reload picks up both drop-ins
 $SSH "BUID=\$(id -u $BUILD_USER)

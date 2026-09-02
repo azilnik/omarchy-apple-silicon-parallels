@@ -1,0 +1,11 @@
+[Unit]
+Description=Omarchy Parallels first-boot cleanup (clear cold-start crash artifacts)
+ConditionPathExists=/var/lib/omarchy-parallels/cleanup-pending
+After=graphical.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/omarchy-parallels-cleanup
+
+[Install]
+WantedBy=graphical.target

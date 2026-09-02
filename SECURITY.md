@@ -8,8 +8,8 @@ the image version from `latest.json`.
 Every release is checksummed and minisign-signed — `install.sh` verifies both, or check by hand:
 
 ```sh
-shasum -a 256 -c omarchy-apple-silicon-vm-vX.Y.Z.zip.sha256
-minisign -Vm omarchy-apple-silicon-vm-vX.Y.Z.zip -p minisign.pub
+shasum -a 256 -c omarchy-apple-silicon-parallels-vX.Y.Z.zip.sha256
+minisign -Vm omarchy-apple-silicon-parallels-vX.Y.Z.zip -p minisign.pub
 ```
 
 Issues in Omarchy, Arch, Hyprland, or Parallels themselves belong upstream — happy to help route them.
