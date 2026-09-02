@@ -32,11 +32,18 @@ confirm() { # confirm <prompt> — auto-yes in yolo mode
 printf '%s\n' "${B}Omarchy on Parallels${N} — Arch + Hyprland, one command, no dual-boot."
 
 # ---------- mode selection ----------
-if [[ $YOLO -eq 0 && -t 0 ]]; then
-  printf '\n  1) %sYOLO%s      — no more questions: download, import, boot, sensible defaults\n' "$B" "$N"
-  printf '  2) Guided    — explain and confirm each step\n\n'
-  read -r -p "  Choose [1/2] (default 1): " CHOICE </dev/tty || CHOICE=1
-  [[ -z $CHOICE || $CHOICE == 1 ]] && YOLO=1
+# Gate on /dev/tty, not stdin: under `curl | bash` stdin is the script, but the controlling
+# terminal is still reachable at /dev/tty. If there's no tty at all (fully non-interactive),
+# default to YOLO so the install can still complete unattended.
+if [[ $YOLO -eq 0 ]]; then
+  if [[ -r /dev/tty && -w /dev/tty ]]; then
+    printf '\n  1) %sYOLO%s      — no more questions: download, import, boot, sensible defaults\n' "$B" "$N"
+    printf '  2) Guided    — explain and confirm each step\n\n'
+    read -r -p "  Choose [1/2] (default 1): " CHOICE </dev/tty || CHOICE=1
+    [[ -z $CHOICE || $CHOICE == 1 ]] && YOLO=1
+  else
+    YOLO=1   # no terminal to ask — proceed unattended
+  fi
 fi
 
 # ---------- preflight ----------
