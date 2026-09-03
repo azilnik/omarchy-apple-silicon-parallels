@@ -10,7 +10,7 @@
 set -euo pipefail
 
 MANIFEST_URL="${OMARCHY_PARALLELS_MANIFEST:-https://dl.omarchy-apple-silicon.zilnik.me/latest.json}"
-PUBKEY="${OMARCHY_PARALLELS_PUBKEY:-}"   # minisign public key, baked in at release
+PUBKEY="${OMARCHY_PARALLELS_PUBKEY:-RWT5YqKK9D9tIBTX2tg4bz8TalDtG0qcXsN+tHu+QGMGfZXfZ/3Bm7Nl}"   # minisign public key, baked in at release
 DEST="$HOME/Parallels"
 YOLO=0
 [[ ${1:-} == "--yolo" || ${1:-} == "-y" ]] && YOLO=1
