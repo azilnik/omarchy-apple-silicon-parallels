@@ -130,6 +130,10 @@ UUID=""
 
 # ---------- boot ----------
 step "Starting Omarchy"
+# Actually start the VM. `open` alone just opens the window and won't reliably auto-start a
+# freshly-registered VM, so boot it with prlctl when available; then open the window so the user
+# can watch first boot. On editions without prlctl, open is the only lever we have.
+[[ -x $PRLCTL ]] && "$PRLCTL" start Omarchy >/dev/null 2>&1 || true
 open "$DEST/Omarchy.pvm" 2>/dev/null || true
 printf '\n%s✓ Done.%s ' "$GREEN" "$N"
 if [[ $YOLO -eq 1 ]]; then
