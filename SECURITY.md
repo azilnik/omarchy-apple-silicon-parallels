@@ -1,30 +1,15 @@
-# Security Policy
+# Security
 
-## Reporting a vulnerability
+Found a security issue — a bad default, a way to bypass the checksum/signature, something in the
+install scripts or the shipped image? Please report it privately: email **ari@zilnik.com** or use
+**Report a vulnerability** on this repo's Security tab, rather than opening a public issue. Include
+the image version from `latest.json`.
 
-Email **ari@zilnik.com** with subject `[omarchy-apple-silicon-vm security]`, or use GitHub's
-private vulnerability reporting on this repository. Please include the image version
-(`latest.json` → `version`) and, if relevant, the output of `omarchy-parallels-verify`.
-
-You'll get an acknowledgment within 72 hours. Please don't open public issues for
-unpatched vulnerabilities.
-
-## Scope
-
-- The `install.sh` / `host/` scripts that run on your Mac
-- The `guest/` payload (first-boot, autoresize, verify) inside the image
-- The build pipeline's sysprep guarantees (no keys, no credentials, no identity in shipped images)
-
-Vulnerabilities in Omarchy itself, Arch Linux ARM, Hyprland, or Parallels Desktop
-belong upstream — we'll happily help route them.
-
-## Verifying what you download
-
-Every release is checksummed and signed:
+Every release is checksummed and minisign-signed — `install.sh` verifies both, or check by hand:
 
 ```sh
 shasum -a 256 -c omarchy-apple-silicon-vm-vX.Y.Z.zip.sha256
 minisign -Vm omarchy-apple-silicon-vm-vX.Y.Z.zip -p minisign.pub
 ```
 
-`install.sh` performs both checks automatically when minisign is available.
+Issues in Omarchy, Arch, Hyprland, or Parallels themselves belong upstream — happy to help route them.
