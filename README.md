@@ -7,7 +7,7 @@
 
 **Omarchy 4 "Quattro" as a ready-to-run VM for Apple Silicon Macs (M1–M4)** — the full Hyprland + Quickshell Arch desktop with native HiDPI, live window-resize, and a 60-second first boot. One command, no dual-boot, no bare-metal risk, on every Parallels edition including the free trial — so you can [test-drive Omarchy](https://omarchy.org) for two weeks with no spare hardware.
 
-![The Omarchy 4 "Quattro" desktop — Hyprland and Quickshell — running in Parallels on an Apple Silicon Mac](docs/assets/desktop.png)
+![One command installs Omarchy for Parallels on Apple Silicon — the installer downloads, verifies, imports, and boots straight to the Hyprland + Quickshell desktop](docs/assets/demo.gif)
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/azilnik/omarchy-apple-silicon-parallels/main/install.sh | bash
