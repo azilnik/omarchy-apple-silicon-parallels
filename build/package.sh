@@ -68,7 +68,7 @@ PY
 mv "$CLONE_HOME" "$WORK/Omarchy.pvm"
 
 echo "==> [6/6] packaging"
-ZIP="$OUT/omarchy-apple-silicon-vm-v$VERSION.zip"
+ZIP="$OUT/omarchy-apple-silicon-parallels-v$VERSION.zip"
 rm -f "$ZIP"
 ( cd "$WORK" && zip -qry "$ZIP" Omarchy.pvm )
 shasum -a 256 "$ZIP" | tee "$ZIP.sha256"

@@ -1,7 +1,7 @@
 #!/bin/bash
 # omarchy-parallels installer — get Omarchy running in Parallels on an Apple Silicon Mac.
 #
-#   curl -fsSL https://raw.githubusercontent.com/azilnik/omarchy-apple-silicon-vm/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/azilnik/omarchy-apple-silicon-parallels/main/install.sh | bash
 #
 # Interactive by default; `--yolo` (or choosing YOLO at the menu) runs fully headless:
 # download → verify → import → HiDPI pref → boot, with the in-guest first-boot applying
@@ -73,7 +73,7 @@ confirm "Download and install v$VER into $DEST?" || die "Cancelled."
 step "Downloading image"
 note "${SIZE:-~3-4 GB} — several minutes on a typical connection. Safe to interrupt; re-running resumes."
 mkdir -p "$DEST"
-ZIP="$DEST/omarchy-apple-silicon-vm-v$VER.zip"
+ZIP="$DEST/omarchy-apple-silicon-parallels-v$VER.zip"
 # default curl meter (shows speed + ETA + elapsed) beats --progress-bar for a multi-GB file (M3)
 curl -fL -C - -o "$ZIP" "$URL" || die "Download failed. Re-run to resume from where it stopped."
 ok "downloaded"

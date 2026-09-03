@@ -7,7 +7,7 @@
 A ready-to-run **Omarchy 4 (Quattro)** — Arch Linux ARM, Hyprland 0.56, and the new Quickshell desktop — as a virtual machine for **Apple Silicon Macs (M1–M4)**, with native HiDPI, a desktop that follows the Parallels window as you resize it, and a 60-second first-boot setup. Works on every Parallels edition, including Standard and the free trial.
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/azilnik/omarchy-apple-silicon-vm/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/azilnik/omarchy-apple-silicon-parallels/main/install.sh | bash
 ```
 
 Pick **YOLO** at the prompt (or pass `--yolo`) and the next thing you interact with is the Omarchy desktop.

@@ -23,8 +23,9 @@ set -uo pipefail
 # ---- secrets & identity ----
 rm -f /root/.ssh/authorized_keys $BUILD_HOME/.ssh/authorized_keys
 rm -f /etc/ssh/ssh_host_*
-truncate -s 0 /etc/machine-id
-rm -f /var/lib/dbus/machine-id
+# machine-id is reset LAST, right before poweroff (see end of script). Doing it here is
+# pointless — the still-running clone's systemd re-commits it during the rest of sysprep, so the
+# image would ship with a stale committed id and churn on the import's first boot.
 
 # ---- credentials: lock accounts; OOBE sets real ones ----
 passwd -l root >/dev/null
@@ -80,12 +81,25 @@ rm -f /etc/sudoers.d/90-build-temp /etc/sudoers.d/20-omarchy-install 2>/dev/null
 install -d /var/lib/omarchy-parallels
 touch /var/lib/omarchy-parallels/firstboot-pending
 systemctl enable omarchy-parallels-firstboot.service >/dev/null 2>&1
+# arm the one-shot that clears the cold-start crash artifacts once the first desktop settles
+touch /var/lib/omarchy-parallels/cleanup-pending
+systemctl enable omarchy-parallels-cleanup.service >/dev/null 2>&1
 systemctl disable --now sshd >/dev/null 2>&1 || true
 
 # ---- zero-fill free space so prl_disk_tool compact can reclaim it ----
 echo "==> zero-filling free space (takes a while)"
 dd if=/dev/zero of=/zero.fill bs=8M status=none 2>/dev/null || true
 sync; rm -f /zero.fill; sync
+
+# ---- reset machine identity LAST, so the running clone's systemd can't re-commit it ----
+# 'uninitialized' is systemd's sentinel: on the import's first boot systemd generates a fresh,
+# unique machine-id atomically and very early — before dbus/journald/the session. That removes the
+# machine-id churn that made dbus_get_local_machine_id() abort in Qt clients on cold start
+# (fcitx5's Qt plugin → quickshell crash-loop). Also drop the journal (per-machine-id dir carrying
+# the builder's id) and the random seed one final time.
+echo 'uninitialized' > /etc/machine-id
+rm -f /var/lib/dbus/machine-id /var/lib/systemd/random-seed
+rm -rf /var/log/journal/* 2>/dev/null || true
 echo "==> sysprep done; powering off"
 systemctl poweroff
 EOF
