@@ -57,9 +57,11 @@ $SSH "cat >> '$BINDS'" < "$REPO/guest/hypr/parallels-mac.bindings.lua"
 $SSH "chown $BUILD_USER:$BUILD_USER '$BINDS'"
 
 # Parallels double-cursor fix — render the cursor in software (see the drop-in for why).
-# Same idempotent marker pattern, appended to looknfeel.lua (omarchy's cursor-config file).
+# hyprland.lua require()s this module, so it MUST exist and hold omarchy's template. Reseed
+# from the pristine default (the user copy is just a commented template — no user config to
+# lose in a fresh build), then append our cursor block. Deterministic; never clobbers.
 LNF="$BUILD_HOME/.config/hypr/looknfeel.lua"
-$SSH "touch '$LNF'; sed -i '/── BEGIN omarchy-parallels cursor ──/,/── END omarchy-parallels cursor ──/d' '$LNF' 2>/dev/null; true"
+$SSH "install -Dm644 /usr/share/omarchy/config/hypr/looknfeel.lua '$LNF'"
 $SSH "cat >> '$LNF'" < "$REPO/guest/hypr/parallels-cursor.looknfeel.lua"
 $SSH "chown $BUILD_USER:$BUILD_USER '$LNF'"
 
