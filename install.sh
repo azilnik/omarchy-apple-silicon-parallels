@@ -29,7 +29,7 @@ confirm() { # confirm <prompt> — auto-yes in yolo mode
   [[ -z $a || $a =~ ^[Yy] ]]
 }
 
-printf '%s\n' "${B}Omarchy for Apple Silicon${N} — Arch + Hyprland, one command, no dual-boot."
+printf '%s\n' "${B}Omarchy for Parallels on Apple Silicon${N} — Arch + Hyprland, one command, no dual-boot."
 
 # ---------- mode selection ----------
 # Gate on /dev/tty, not stdin: under `curl | bash` stdin is the script, but the controlling
@@ -66,7 +66,7 @@ URL=$(sed -n 's/.*"url" *: *"\([^"]*\)".*/\1/p' <<<"$MANIFEST" | head -1)
 SHA=$(sed -n 's/.*"sha256" *: *"\([^"]*\)".*/\1/p' <<<"$MANIFEST" | head -1)
 SIZE=$(sed -n 's/.*"size_human" *: *"\([^"]*\)".*/\1/p' <<<"$MANIFEST" | head -1)
 [[ -n $VER && -n $URL && -n $SHA ]] || die "Malformed manifest"
-ok "Omarchy for Apple Silicon v$VER (${SIZE:-a few GB} download)"
+ok "Omarchy for Parallels on Apple Silicon v$VER (${SIZE:-a few GB} download)"
 confirm "Download and install v$VER into $DEST?" || die "Cancelled."
 
 # ---------- download (resumable) ----------

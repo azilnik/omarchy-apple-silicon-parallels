@@ -82,7 +82,7 @@ apply() { # apply <username> <password> <hostname> <enable_ssh:yes|no> <expire_p
 
 # ---------------------------------------------------------------- main
 clear
-big "Welcome to Omarchy for Apple Silicon"
+big "Welcome to Omarchy for Parallels on Apple Silicon"
 say "First boot: creating this machine's identity..."
 regen_identity
 
