@@ -2,7 +2,7 @@
 
 ## Reporting a vulnerability
 
-Email **ari@zilnik.com** with subject `[omarchy-parallels security]`, or use GitHub's
+Email **ari@zilnik.com** with subject `[omarchy-apple-silicon-vm security]`, or use GitHub's
 private vulnerability reporting on this repository. Please include the image version
 (`latest.json` → `version`) and, if relevant, the output of `omarchy-parallels-verify`.
 
@@ -23,8 +23,8 @@ belong upstream — we'll happily help route them.
 Every release is checksummed and signed:
 
 ```sh
-shasum -a 256 -c omarchy-parallels-vX.Y.Z.zip.sha256
-minisign -Vm omarchy-parallels-vX.Y.Z.zip -p minisign.pub
+shasum -a 256 -c omarchy-apple-silicon-vm-vX.Y.Z.zip.sha256
+minisign -Vm omarchy-apple-silicon-vm-vX.Y.Z.zip -p minisign.pub
 ```
 
 `install.sh` performs both checks automatically when minisign is available.

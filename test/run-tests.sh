@@ -6,7 +6,7 @@
 # boots it, lets the YOLO first-boot run, then asserts every sysprep + first-boot
 # invariant from *inside* the guest via `prlctl exec` — no sshd needed (YOLO leaves it off).
 #
-# Usage: test/run-tests.sh dist/omarchy-parallels-vX.Y.Z.zip
+# Usage: test/run-tests.sh dist/omarchy-apple-silicon-vm-vX.Y.Z.zip
 
 set -uo pipefail
 ZIP=${1:?usage: run-tests.sh <image.zip>}

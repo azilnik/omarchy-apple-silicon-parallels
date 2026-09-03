@@ -24,7 +24,7 @@ now run unattended.
 
 ## Result: 26/26 on the clean re-build
 
-Cold-imported the freshly built `omarchy-parallels-v0.1.0.zip` and asserted, from inside the guest:
+Cold-imported the freshly built `omarchy-apple-silicon-vm-v0.1.0.zip` and asserted, from inside the guest:
 
 - Pre-boot: `SourceVmUuid` stripped, MAC blanked, disk on SATA.
 - Headless import + fresh MAC assigned.
@@ -78,4 +78,4 @@ The deep guest-side assertions surfaced polish issues the earlier surface-level 
 
 Cutting the public release: create the minisign key, set up Cloudflare R2, run
 `MINISIGN_KEY=… build/release.sh 0.1.0` to upload + write `latest.json` + tag, and flip the repo
-public. The image itself is built, verified, and ready at `dist/omarchy-parallels-v0.1.0.zip`.
+public. The image itself is built, verified, and ready at `dist/omarchy-apple-silicon-vm-v0.1.0.zip`.

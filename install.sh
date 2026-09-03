@@ -1,7 +1,7 @@
 #!/bin/bash
 # omarchy-parallels installer — get Omarchy running in Parallels on an Apple Silicon Mac.
 #
-#   curl -fsSL https://raw.githubusercontent.com/azilnik/omarchy-parallels/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/azilnik/omarchy-apple-silicon-vm/main/install.sh | bash
 #
 # Interactive by default; `--yolo` (or choosing YOLO at the menu) runs fully headless:
 # download → verify → import → HiDPI pref → boot, with the in-guest first-boot applying
@@ -9,7 +9,7 @@
 
 set -euo pipefail
 
-MANIFEST_URL="${OMARCHY_PARALLELS_MANIFEST:-https://dl.omarchy-parallels.zilnik.me/latest.json}"
+MANIFEST_URL="${OMARCHY_PARALLELS_MANIFEST:-https://dl.omarchy-apple-silicon.zilnik.me/latest.json}"
 PUBKEY="${OMARCHY_PARALLELS_PUBKEY:-}"   # minisign public key, baked in at release
 DEST="$HOME/Parallels"
 YOLO=0
@@ -29,7 +29,7 @@ confirm() { # confirm <prompt> — auto-yes in yolo mode
   [[ -z $a || $a =~ ^[Yy] ]]
 }
 
-printf '%s\n' "${B}Omarchy on Parallels${N} — Arch + Hyprland, one command, no dual-boot."
+printf '%s\n' "${B}Omarchy for Apple Silicon${N} — Arch + Hyprland, one command, no dual-boot."
 
 # ---------- mode selection ----------
 # Gate on /dev/tty, not stdin: under `curl | bash` stdin is the script, but the controlling
@@ -73,7 +73,7 @@ confirm "Download and install v$VER into $DEST?" || die "Cancelled."
 step "Downloading image"
 note "${SIZE:-~3-4 GB} — several minutes on a typical connection. Safe to interrupt; re-running resumes."
 mkdir -p "$DEST"
-ZIP="$DEST/omarchy-parallels-v$VER.zip"
+ZIP="$DEST/omarchy-apple-silicon-vm-v$VER.zip"
 # default curl meter (shows speed + ETA + elapsed) beats --progress-bar for a multi-GB file (M3)
 curl -fL -C - -o "$ZIP" "$URL" || die "Download failed. Re-run to resume from where it stopped."
 ok "downloaded"

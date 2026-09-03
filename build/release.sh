@@ -4,14 +4,14 @@
 # Needs: aws CLI configured with an R2 access key, or env AWS_ACCESS_KEY_ID/SECRET.
 #   R2_ENDPOINT   https://<account-id>.r2.cloudflarestorage.com
 #   R2_BUCKET     e.g. omarchy-parallels
-#   PUBLIC_BASE   e.g. https://dl.omarchy-parallels.zilnik.me
+#   PUBLIC_BASE   e.g. https://dl.omarchy-apple-silicon.zilnik.me
 #
 # Usage: build/release.sh <version>
 
 set -euo pipefail
 VERSION=${1:?usage: release.sh <version>}
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
-ZIP="$REPO/dist/omarchy-parallels-v$VERSION.zip"
+ZIP="$REPO/dist/omarchy-apple-silicon-vm-v$VERSION.zip"
 : "${R2_ENDPOINT:?set R2_ENDPOINT}"; : "${R2_BUCKET:?set R2_BUCKET}"; : "${PUBLIC_BASE:?set PUBLIC_BASE}"
 
 [[ -f $ZIP && -f $ZIP.sha256 ]] || { echo "release: run package.sh $VERSION first" >&2; exit 1; }
@@ -21,15 +21,15 @@ SIZE_H=$(du -h "$ZIP" | cut -f1 | tr -d ' ')
 OMARCHY_VER=$("${OMARCHY_SSH:-$HOME/Parallels/omarchy-ssh}" 'cat /usr/share/omarchy/version' 2>/dev/null || echo unknown)
 
 echo "==> uploading v$VERSION ($SIZE_H) to r2://$R2_BUCKET"
-aws s3 cp "$ZIP" "s3://$R2_BUCKET/omarchy-parallels-v$VERSION.zip" --endpoint-url "$R2_ENDPOINT"
-aws s3 cp "$ZIP.sha256" "s3://$R2_BUCKET/omarchy-parallels-v$VERSION.zip.sha256" --endpoint-url "$R2_ENDPOINT"
-[[ -f $ZIP.minisig ]] && aws s3 cp "$ZIP.minisig" "s3://$R2_BUCKET/omarchy-parallels-v$VERSION.zip.minisig" --endpoint-url "$R2_ENDPOINT"
+aws s3 cp "$ZIP" "s3://$R2_BUCKET/omarchy-apple-silicon-vm-v$VERSION.zip" --endpoint-url "$R2_ENDPOINT"
+aws s3 cp "$ZIP.sha256" "s3://$R2_BUCKET/omarchy-apple-silicon-vm-v$VERSION.zip.sha256" --endpoint-url "$R2_ENDPOINT"
+[[ -f $ZIP.minisig ]] && aws s3 cp "$ZIP.minisig" "s3://$R2_BUCKET/omarchy-apple-silicon-vm-v$VERSION.zip.minisig" --endpoint-url "$R2_ENDPOINT"
 
 echo "==> writing latest.json"
 cat > /tmp/latest.json <<EOF
 {
   "version": "$VERSION",
-  "url": "$PUBLIC_BASE/omarchy-parallels-v$VERSION.zip",
+  "url": "$PUBLIC_BASE/omarchy-apple-silicon-vm-v$VERSION.zip",
   "sha256": "$SHA",
   "size": $SIZE,
   "size_human": "$SIZE_H",
@@ -44,5 +44,5 @@ aws s3 cp "$REPO/host/post-import.sh" "s3://$R2_BUCKET/post-import.sh" --endpoin
 
 echo "==> tagging repo v$VERSION"
 git -C "$REPO" tag -f "v$VERSION"
-echo "==> released: $PUBLIC_BASE/omarchy-parallels-v$VERSION.zip"
+echo "==> released: $PUBLIC_BASE/omarchy-apple-silicon-vm-v$VERSION.zip"
 echo "    (push the tag when ready: git push origin v$VERSION)"

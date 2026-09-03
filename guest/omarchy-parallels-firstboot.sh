@@ -27,9 +27,14 @@ big()  { $G style --border rounded --padding "1 3" --margin "1 0" --foreground 5
 
 # ---------------------------------------------------------------- identity
 regen_identity() {
-  rm -f /etc/machine-id /var/lib/dbus/machine-id
-  systemd-machine-id-setup >/dev/null 2>&1
-  ln -sf /etc/machine-id /var/lib/dbus/machine-id 2>/dev/null || true
+  # DO NOT regenerate the machine-id here. sysprep leaves /etc/machine-id empty, so systemd
+  # already generated a fresh, unique one very early in first boot — and the system dbus daemon
+  # started with it. Re-generating it now (systemd-machine-id-setup) changes it out from under
+  # the running dbus daemon, so dbus_get_local_machine_id()'s consistency check aborts in every
+  # Qt client (fcitx5's Qt plugin → quickshell crash-loops ~10x before the session settles).
+  # Just make sure dbus's pointer to the id exists; never touch the id's value.
+  [[ -e /var/lib/dbus/machine-id ]] || ln -sf /etc/machine-id /var/lib/dbus/machine-id 2>/dev/null || true
+  # SSH host keys are safe to regenerate (nothing has cached them yet).
   rm -f /etc/ssh/ssh_host_*
   ssh-keygen -A >/dev/null 2>&1
 }
@@ -77,7 +82,7 @@ apply() { # apply <username> <password> <hostname> <enable_ssh:yes|no> <expire_p
 
 # ---------------------------------------------------------------- main
 clear
-big "Welcome to Omarchy on Parallels"
+big "Welcome to Omarchy for Apple Silicon"
 say "First boot: creating this machine's identity..."
 regen_identity
 
