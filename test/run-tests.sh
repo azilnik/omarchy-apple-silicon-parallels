@@ -108,9 +108,14 @@ for p in omacalc omawrite omacut obsidian ttfx tobi-try hyprland-preview-share-p
 done
 [[ -z $MISS ]] && t_ok "all 7 ARM-built apps installed" || t_fail "missing apps:$MISS"
 
-# login flow + shipped defaults
-X 'grep -q "User=omarchy" /etc/sddm.conf.d/30-autologin.conf' >/dev/null 2>&1 \
-    && t_ok "SDDM autologin points at omarchy" || t_fail "autologin not set to omarchy"
+# login flow + shipped defaults. autologin.conf is written by first-boot's apply() right before it
+# clears the marker; a transient prlctl-exec hiccup can miss it, so retry a few times.
+AUTO=0
+for _ in $(seq 1 6); do
+  X 'grep -q "User=omarchy" /etc/sddm.conf.d/30-autologin.conf' >/dev/null 2>&1 && { AUTO=1; break; }
+  sleep 3
+done
+[[ $AUTO -eq 1 ]] && t_ok "SDDM autologin points at omarchy" || t_fail "autologin not set to omarchy"
 X 'test -f /var/lib/omarchy-parallels/default-password' >/dev/null 2>&1 \
     && t_ok "default-password reminder armed" || t_fail "default-password marker missing"
 if X 'systemctl is-enabled sshd' 2>/dev/null | grep -q enabled; then t_fail "sshd enabled after YOLO (should be off)"
@@ -123,12 +128,6 @@ else t_fail "mac keybinding drop-in missing from bindings.lua"; fi
 # parallels double-cursor fix present (software cursors via looknfeel.lua)
 if X 'grep -q no_hardware_cursors /home/omarchy/.config/hypr/looknfeel.lua' >/dev/null 2>&1; then t_ok "cursor fix present (software cursors)"
 else t_fail "cursor fix missing from looknfeel.lua (double cursor would return)"; fi
-
-# the shipped verify tool's own verdict. Call by full path (prlctl exec uses a minimal PATH) and
-# read the JSON verdict rather than the exit code (prlctl exec mangles exit codes intermittently).
-VERD=$(X '/usr/local/bin/omarchy-parallels-verify 2>/dev/null')
-if echo "$VERD" | grep -q '"verdict": "pass"'; then t_ok "omarchy-parallels-verify verdict=pass (all checks)"
-else t_fail "omarchy-parallels-verify not pass (run: prlctl exec $NAME /usr/local/bin/omarchy-parallels-verify)"; fi
 
 # ---- desktop actually paints (the real black-wallpaper guard) ----
 # Force a fresh autologin session and grab the host-side framebuffer BEFORE the desktop idles into
@@ -149,6 +148,18 @@ for _ in $(seq 1 20); do
 done
 if [[ $PAINT -eq 1 ]]; then t_ok "desktop paints wallpaper+bar (frame ${SZ} bytes) → $SHOT"
 else t_fail "desktop frame is near-black (${SZ:-0} bytes) — wallpaper not painting"; fi
+
+# the shipped verify tool's own verdict — run it AFTER the paint check has brought the graphical
+# session up (verify checks sddm_active/quickshell/hyprland_session, which aren't ready earlier).
+# Read the JSON verdict, not the exit code (prlctl exec mangles those); retry while services settle.
+VERDOK=0
+for _ in $(seq 1 6); do
+  VERD=$(X '/usr/local/bin/omarchy-parallels-verify 2>/dev/null')
+  echo "$VERD" | grep -q '"verdict": "pass"' && { VERDOK=1; break; }
+  sleep 4
+done
+[[ $VERDOK -eq 1 ]] && t_ok "omarchy-parallels-verify verdict=pass (all checks)" \
+  || t_fail "omarchy-parallels-verify not pass (run: prlctl exec $NAME /usr/local/bin/omarchy-parallels-verify)"
 
 echo
 echo "==> RESULT: $PASS passed, $FAIL failed"
