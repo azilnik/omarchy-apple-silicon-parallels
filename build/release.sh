@@ -18,7 +18,17 @@ ZIP="$REPO/dist/omarchy-apple-silicon-parallels-v$VERSION.zip"
 SHA=$(awk '{print $1}' "$ZIP.sha256")
 SIZE=$(stat -f %z "$ZIP")
 SIZE_H=$(du -h "$ZIP" | cut -f1 | tr -d ' ')
-OMARCHY_VER=$("${OMARCHY_SSH:-$HOME/Parallels/omarchy-ssh}" 'cat /usr/share/omarchy/version' 2>/dev/null || echo unknown)
+# omarchy version for the manifest. Only ssh the builder if it's actually running — a stopped VM
+# leaves a stale DHCP lease, and ssh to that dead IP can hang past ConnectTimeout. Override with
+# OMARCHY_VER=x.y.z to skip the fetch entirely (e.g. when packaging from a known image).
+OMARCHY_VER="${OMARCHY_VER:-}"
+if [[ -z $OMARCHY_VER ]]; then
+  if prlctl list --no-header 2>/dev/null | grep -qi omarchy; then
+    OMARCHY_VER=$("${OMARCHY_SSH:-$HOME/Parallels/omarchy-ssh}" 'cat /usr/share/omarchy/version' 2>/dev/null || echo unknown)
+  else
+    OMARCHY_VER=unknown
+  fi
+fi
 
 echo "==> uploading v$VERSION ($SIZE_H) to r2://$R2_BUCKET"
 aws s3 cp "$ZIP" "s3://$R2_BUCKET/omarchy-apple-silicon-parallels-v$VERSION.zip" --endpoint-url "$R2_ENDPOINT"
