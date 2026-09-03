@@ -77,6 +77,12 @@ KB_OK=1; KB_HOME=$(getent passwd "${DESKTOP_USER:-omarchy}" 2>/dev/null | cut -d
   grep -q "omarchy-parallels mac keybinds" "$KB_HOME/.config/hypr/bindings.lua" && KB_OK=0
 check mac_keybinds "$KB_OK" "terminal-on-ctrl-return drop-in"
 
+# --- parallels double-cursor fix present (software cursors) ---
+CUR_OK=1
+[[ -n $KB_HOME && -f "$KB_HOME/.config/hypr/looknfeel.lua" ]] && \
+  grep -q "no_hardware_cursors" "$KB_HOME/.config/hypr/looknfeel.lua" && CUR_OK=0
+check cursor_fix "$CUR_OK" "software cursors (no double cursor)"
+
 # --- systemd overall ---
 FAILED_UNITS=$(systemctl --failed --no-legend --no-pager 2>/dev/null | wc -l | tr -d ' ')
 check no_failed_units "$([[ $FAILED_UNITS -eq 0 ]] && echo 0 || echo 1)" "failed=$FAILED_UNITS"

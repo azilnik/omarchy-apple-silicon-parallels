@@ -111,6 +111,10 @@ else t_ok "sshd off after YOLO (as shipped)"; fi
 if X 'grep -qi parallels /home/omarchy/.config/hypr/bindings.lua' >/dev/null 2>&1; then t_ok "mac keybinding drop-in present in bindings.lua"
 else t_fail "mac keybinding drop-in missing from bindings.lua"; fi
 
+# parallels double-cursor fix present (software cursors via looknfeel.lua)
+if X 'grep -q no_hardware_cursors /home/omarchy/.config/hypr/looknfeel.lua' >/dev/null 2>&1; then t_ok "cursor fix present (software cursors)"
+else t_fail "cursor fix missing from looknfeel.lua (double cursor would return)"; fi
+
 # the shipped verify tool's own verdict. Call by full path (prlctl exec uses a minimal PATH) and
 # read the JSON verdict rather than the exit code (prlctl exec mangles exit codes intermittently).
 VERD=$(X '/usr/local/bin/omarchy-parallels-verify 2>/dev/null')

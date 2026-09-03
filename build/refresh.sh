@@ -54,8 +54,17 @@ sudo -u $BUILD_USER XDG_RUNTIME_DIR=/run/user/\$BUID systemctl --user enable --n
 BINDS="$BUILD_HOME/.config/hypr/bindings.lua"
 $SSH "sed -i '/── BEGIN omarchy-parallels mac keybinds ──/,/── END omarchy-parallels mac keybinds ──/d' '$BINDS' 2>/dev/null; true"
 $SSH "cat >> '$BINDS'" < "$REPO/guest/hypr/parallels-mac.bindings.lua"
-$SSH "chown $BUILD_USER:$BUILD_USER '$BINDS'
-BUID=\$(id -u $BUILD_USER)
+$SSH "chown $BUILD_USER:$BUILD_USER '$BINDS'"
+
+# Parallels double-cursor fix — render the cursor in software (see the drop-in for why).
+# Same idempotent marker pattern, appended to looknfeel.lua (omarchy's cursor-config file).
+LNF="$BUILD_HOME/.config/hypr/looknfeel.lua"
+$SSH "touch '$LNF'; sed -i '/── BEGIN omarchy-parallels cursor ──/,/── END omarchy-parallels cursor ──/d' '$LNF' 2>/dev/null; true"
+$SSH "cat >> '$LNF'" < "$REPO/guest/hypr/parallels-cursor.looknfeel.lua"
+$SSH "chown $BUILD_USER:$BUILD_USER '$LNF'"
+
+# one reload picks up both drop-ins
+$SSH "BUID=\$(id -u $BUILD_USER)
 SIG=\$(ls -1t /run/user/\$BUID/hypr 2>/dev/null | head -1)
 [ -n \"\$SIG\" ] && sudo -u $BUILD_USER env HOME=$BUILD_HOME XDG_RUNTIME_DIR=/run/user/\$BUID HYPRLAND_INSTANCE_SIGNATURE=\$SIG hyprctl reload >/dev/null 2>&1 || true"
 
