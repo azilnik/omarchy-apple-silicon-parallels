@@ -3,7 +3,7 @@
 #
 # Needs: aws CLI configured with an R2 access key, or env AWS_ACCESS_KEY_ID/SECRET.
 #   R2_ENDPOINT   https://<account-id>.r2.cloudflarestorage.com
-#   R2_BUCKET     e.g. omarchy-parallels
+#   R2_BUCKET     e.g. omarchy-apple-silicon-parallels
 #   PUBLIC_BASE   e.g. https://dl.omarchy-apple-silicon.zilnik.me
 #
 # Usage: build/release.sh <version>
