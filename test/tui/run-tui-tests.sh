@@ -57,6 +57,11 @@ got=$(env -u LANG -u LC_ALL -u LC_CTYPE /bin/bash -c '. '"$REPO"'/lib/tui.sh; OM
 printf '\n== render performance ==\n'
 # The render path must not fork. A fork per field would not change the output, only the speed,
 # so time is the assertion: 300 frames of an 8-task list should be milliseconds, not seconds.
+# Best of three, with a generous bound. The point of this check is that the frame path does
+# not fork — a forking implementation is orders of magnitude slower, not a few percent — so a
+# tight threshold buys nothing and just fails when the machine is busy with something else.
+best=""
+for _ in 1 2 3; do
 ms=$( { TIMEFORMAT=%R; time /bin/bash -c '
   . '"$REPO"'/lib/tui.sh
   OMARCHY_TUI=fancy tui_init >/dev/null 2>&1
@@ -64,8 +69,11 @@ ms=$( { TIMEFORMAT=%R; time /bin/bash -c '
   for i in 1 2 3 4 5 6 7 8; do tui_task_add "t$i" "Task number $i"; done
   tui_progress t3 "2.1 GB of 3.7 GB" "55/100" >/dev/null
   n=0; while [ $n -lt 300 ]; do _tui_render; n=$((n+1)); done' >/dev/null 2>&1; } 2>&1 )
-awk -v t="$ms" 'BEGIN{exit !(t < 1.0)}' && ok "render: 300 frames of 8 tasks in ${ms}s (< 1.0s)" \
-  || bad "render too slow" "300 frames took ${ms}s — something in the frame path is forking"
+  if [[ -z $best ]] || awk -v a="$ms" -v b="$best" 'BEGIN{exit !(a < b)}'; then best=$ms; fi
+done
+awk -v t="$best" 'BEGIN{exit !(t < 2.0)}' \
+  && ok "render: 300 frames of 8 tasks in ${best}s (best of 3, bound 2.0s)" \
+  || bad "render too slow" "300 frames took ${best}s — something in the frame path is forking"
 
 printf '\n== installer: happy path ==\n'
 out=$(OMARCHY_TUI=plain "$H" --size 6 -- --quick 2>&1); rc=$?
@@ -133,6 +141,32 @@ if [[ $QUICK -eq 0 ]]; then
   kill -TERM $stallpid 2>/dev/null; wait $stallpid 2>/dev/null
   pkill -f 'test/tui/server.py' 2>/dev/null
   [[ $found -eq 1 ]] && ok "a stalled download says so instead of looking hung" || bad "stall never reported"
+fi
+
+printf '\n== what the screen actually shows ==\n'
+# Assert on the rendered screen, not the byte stream. Text printed after the live region
+# closes lands on rows that still hold an older frame; without an erase-to-end-of-line a short
+# line (the blank row inside a panel) leaves the tail of what was underneath showing through.
+# Not inside the harness work directory — the harness wipes that on every run, including
+# the file being written into it.
+CAST="${TMPDIR:-/tmp}/omarchy-screen.cast"
+python3 "$REPO/test/tui/record-cast.py" --out "$CAST" --cols 100 --rows 30 -- \
+  "$H" --size 8 --rate 41943040 -- --quick >/dev/null 2>&1
+if [[ -s $CAST ]]; then
+  screen=$(python3 "$REPO/test/tui/render-screen.py" "$CAST")
+  have "$screen" "Done — Omarchy is booting." && ok "the finished screen shows the completion panel" \
+    || bad "no completion panel on the rendered screen"
+  # The blank row inside the panel must be the rail and nothing else.
+  if grep -qE '^  . +[A-Za-z]' <<<"$(grep -F '▌' <<<"$screen" | grep -vE '[A-Za-z]{3}')" 2>/dev/null; then
+    bad "a panel row has text bleeding through from an older frame"
+  else
+    ok "no older frame bleeds through the completion panel"
+  fi
+  dupes=$(grep -c 'Unpacking' <<<"$screen")
+  [[ ${dupes:-0} -le 1 ]] && ok "no task row is drawn twice on the final screen" \
+    || bad "a task row appears $dupes times — the live region desynchronised"
+else
+  bad "could not record a cast to render"
 fi
 
 printf '\n== source hazards ==\n'

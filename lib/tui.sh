@@ -84,6 +84,9 @@ tui_init() {
 
   TUI_LIVE=0
   [ "$TUI_TTY" -eq 1 ] && [ "$TUI_TIER" -ge 2 ] && [ "${TUI_NARROW:-0}" -eq 0 ] && TUI_LIVE=1
+  # Appended to every line printed outside the live region. Empty when we are not driving a
+  # terminal, so a piped log never gains an escape sequence.
+  if [ "$TUI_LIVE" -eq 1 ]; then TUI_EOL=$'\033[K'; else TUI_EOL=''; fi
 
   _tui_probe_bg
   _tui_palette "$depth"
@@ -476,9 +479,9 @@ tui_commit() { # leave the region on screen and start a fresh one below it
 # ---------------------------------------------------------------- chrome
 
 tui_header() { # tui_header <title> [subtitle]
-  printf '\n  %s%s%s' "$TUI_B" "$1" "$TUI_R"
+  printf '\n%s  %s%s%s' "$TUI_EOL" "$TUI_B" "$1" "$TUI_R"
   [ -n "${2:-}" ] && printf '  %s%s%s' "$TUI_FAINT" "$2" "$TUI_R"
-  printf '\n\n'
+  printf '%s\n%s\n' "$TUI_EOL" "$TUI_EOL"
 }
 
 tui_kv() { # tui_kv <marker-colour> <marker> <key> <value> — a reference row on the task grid
@@ -486,15 +489,16 @@ tui_kv() { # tui_kv <marker-colour> <marker> <key> <value> — a reference row o
   # read as the same surface rather than two different programs.
   local pad
   _tui_pad pad "$3" "$_TUI_LABELW"
-  printf '  %s%s%s  %s%s%s  %s%s%s\n' "$1" "$2" "$TUI_R" "$TUI_FG" "$pad" "$TUI_R" "$TUI_DIM" "$4" "$TUI_R"
+  printf '  %s%s%s  %s%s%s  %s%s%s%s\n' "$1" "$2" "$TUI_R" "$TUI_FG" "$pad" "$TUI_R" \
+    "$TUI_DIM" "$4" "$TUI_R" "$TUI_EOL"
 }
 
 tui_label_width() { _TUI_LABELW=$1; }   # fix the column when there is no task list to size it
 
-tui_rule()  { printf '  %s%s%s\n' "$TUI_FAINT" "${_TUI_RULE[$((TUI_COLS - 4))]}" "$TUI_R"; }
-tui_note()  { local t; _tui_trunc t "$1" $((TUI_COLS - 6)); printf '     %s%s%s\n' "$TUI_DIM" "$t" "$TUI_R"; }
-tui_hint()  { local t; _tui_trunc t "$1" $((TUI_COLS - 8)); printf '     %s%s%s %s%s%s\n' "$TUI_FAINT" "$TUI_G_BULLET" "$TUI_R" "$TUI_DIM" "$t" "$TUI_R"; }
-tui_blank() { printf '\n'; }
+tui_rule()  { printf '  %s%s%s%s\n' "$TUI_FAINT" "${_TUI_RULE[$((TUI_COLS - 4))]}" "$TUI_R" "$TUI_EOL"; }
+tui_note()  { local t; _tui_trunc t "$1" $((TUI_COLS - 6)); printf '     %s%s%s%s\n' "$TUI_DIM" "$t" "$TUI_R" "$TUI_EOL"; }
+tui_hint()  { local t; _tui_trunc t "$1" $((TUI_COLS - 8)); printf '     %s%s%s %s%s%s%s\n' "$TUI_FAINT" "$TUI_G_BULLET" "$TUI_R" "$TUI_DIM" "$t" "$TUI_R" "$TUI_EOL"; }
+tui_blank() { printf '%s\n' "$TUI_EOL"; }
 
 tui_panel() { # tui_panel <colour> <title> <line>… — a callout with an accent rail
   # Deliberately one-sided. A box needs every body line padded to the closing edge, and the
@@ -502,12 +506,12 @@ tui_panel() { # tui_panel <colour> <title> <line>… — a callout with an accen
   # the right edge lands ragged — which is how this used to render as an open-ended "C".
   local color=$1 title=$2 line
   shift 2
-  printf '\n  %s%s%s %s%s%s\n' "$color" "$TUI_G_RAIL" "$TUI_R" "$TUI_B" "$title" "$TUI_R"
+  printf '\n%s  %s%s%s %s%s%s%s\n' "$TUI_EOL" "$color" "$TUI_G_RAIL" "$TUI_R" "$TUI_B" "$title" "$TUI_R" "$TUI_EOL"
   for line in "$@"; do
-    if [ -z "$line" ]; then printf '  %s%s%s\n' "$color" "$TUI_G_RAIL" "$TUI_R"
-    else printf '  %s%s%s %s%s%s\n' "$color" "$TUI_G_RAIL" "$TUI_R" "$TUI_DIM" "$line" "$TUI_R"; fi
+    if [ -z "$line" ]; then printf '  %s%s%s%s\n' "$color" "$TUI_G_RAIL" "$TUI_R" "$TUI_EOL"
+    else printf '  %s%s%s %s%s%s%s\n' "$color" "$TUI_G_RAIL" "$TUI_R" "$TUI_DIM" "$line" "$TUI_R" "$TUI_EOL"; fi
   done
-  printf '\n'
+  printf '%s\n' "$TUI_EOL"
 }
 
 # ---------------------------------------------------------------- input
