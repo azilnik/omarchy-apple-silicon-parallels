@@ -125,10 +125,22 @@ The README hero is different: its figures have to be the real ones — the actua
 version, the actual 4.7 GB download, the actual transfer rates and the 24 GB unpack — and a
 real run takes about fifteen minutes, which is no use as a GIF.
 
-So it is recorded once from a real install and replayed compressed. `record-cast.py` captures
-the session with timings; `play-cast.py` replays it dividing every delay by `--speed`. None of
-the bytes change, so every number on screen is what the run actually produced; only the pacing
-is shortened.
+So it is recorded once from a real install and replayed. `record-cast.py` captures the session
+with timings; `play-cast.py` replays it. None of the bytes change, so every number on screen is
+what the run actually produced.
+
+Uniform time-compression was the obvious approach and it looked wrong, for one specific reason:
+a spinner. Sped up, it cycles many times per recorded frame and aliases into visual noise, and
+no single speed avoids that — a spinner only reads as a spinner in real time. (The progress
+bars were fine either way; it was always the spinner.) So `--plan` varies the speed across the
+run: the parts worth watching play at 1x, and the long monotonous middles are raced through at
+500x while the recorder looks away. The byte stream is never cut, so the terminal is always in
+a state the real run actually produced.
+
+An earlier attempt dropped frames instead, to lighten the terminal's load, and scrambled the
+display: every frame begins by moving the cursor up by the height of the frame before it, so
+removing a frame of a different height makes each later frame draw in the wrong place. Pacing
+now coalesces writes by output time slice, which drops nothing.
 
 ```sh
 # a real install — needs ~30 GB free and no VM registered as "Omarchy"
@@ -136,6 +148,9 @@ python3 test/tui/record-cast.py --out /tmp/hero.cast --cols 100 --rows 30 -- \
   bash install.sh --quick
 vhs test/tui/rec-hero.tape        # docs/assets/install-quick.gif
 ```
+
+The tape's `Hide`/`Show` windows are timed against the plan's segment durations, which
+`play-cast.py` prints to stderr — re-tune them together if the plan changes.
 
 The cast itself is not committed (it is megabytes of escape sequences), so regenerating the
 hero means doing a real download. The other two GIFs come from the harness and need neither.
