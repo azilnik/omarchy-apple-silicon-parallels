@@ -17,7 +17,11 @@ ap.add_argument("--start", type=float, default=0.0, help="skip everything before
 ap.add_argument("--fps", type=float, default=0.0,
                 help="coalesce output into this many writes per second (0 = one per chunk)")
 ap.add_argument("--no-clear", action="store_true", help="do not clear the screen first")
-ap.add_argument("--write", help="write the (thinned) stream out as a cast instead of playing it")
+ap.add_argument("--write", help="write the (batched) stream out as a cast instead of playing it")
+ap.add_argument("--plan", help="segments as start-end@speed, comma separated, e.g. "
+                               "'0-14@1,14-150@250,150-415@1'. Segments play in order and the "
+                               "byte stream is never cut, so a fast segment can be hidden by "
+                               "the recorder while the terminal stays in a correct state.")
 args = ap.parse_args()
 
 events = []
@@ -68,15 +72,45 @@ if args.write:
             fh.write(json.dumps({"t": t, "d": _b64.b64encode(d).decode()}) + "\n")
     sys.exit(0)
 
+# A plan varies the speed over the run instead of compressing it uniformly. That matters for
+# one reason: a spinner. Time-compressed, it cycles many times per recorded frame and aliases
+# into noise, and no uniform speed avoids that — a spinner only reads as a spinner in real
+# time. So the parts worth watching play at 1x and the long monotonous middles are raced
+# through for the recorder to hide. The stream itself is never cut, so the terminal is always
+# in a state the real run actually produced.
+plan = []
+if args.plan:
+    for part in args.plan.split(","):
+        rng, _, sp = part.partition("@")
+        a, _, b = rng.partition("-")
+        plan.append((float(a), float(b), float(sp or 1)))
+
+def speed_at(t):
+    for a, b, sp in plan:
+        if a <= t < b:
+            return sp
+    return plan[-1][2] if plan else args.speed
+
 w = sys.stdout.buffer
 if not args.no_clear:
     w.write(b"\033[2J\033[3J\033[H")   # start on a clean screen, not under a shell prompt
     w.flush()
 prev = events[0][0] if events else 0.0
+marks, seg_start, seg_i = [], time.time(), 0
 for t, d in events:
-    gap = min((t - prev) / args.speed, args.max_gap)
+    sp = speed_at(t) if plan else args.speed
+    if plan:
+        while seg_i < len(plan) and t >= plan[seg_i][1]:
+            marks.append((plan[seg_i], round(time.time() - seg_start, 2)))
+            seg_start = time.time()
+            seg_i += 1
+    gap = min((t - prev) / sp, args.max_gap)
     if gap > 0:
         time.sleep(gap)
     w.write(d)
     w.flush()
     prev = t
+if plan:
+    marks.append((plan[min(seg_i, len(plan) - 1)], round(time.time() - seg_start, 2)))
+    for (a, b, sp), took in marks:
+        print(f"segment {a:>6.1f}-{b:<6.1f} @{sp:g}x  ->  {took}s", file=sys.stderr)
