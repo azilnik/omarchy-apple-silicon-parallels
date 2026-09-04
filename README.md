@@ -7,15 +7,15 @@
 
 **Omarchy 4 "Quattro" as a ready-to-run VM for Apple Silicon Macs (M1–M4)** — the full Hyprland + Quickshell Arch desktop with native HiDPI, live window-resize, and a first boot that reaches the desktop in about a minute. One command, no dual-boot, no bare-metal risk, on every Parallels edition including the free trial — so you can [test-drive Omarchy](https://omarchy.org) for two weeks with no spare hardware.
 
-![The installer running: a live checklist showing the Mac checked, the release found, then the image downloading with size, speed and time remaining, unpacking, importing into Parallels and booting](docs/assets/install-quick.gif)
+![One command, end to end: the installer checks the Mac, downloads and verifies the image, unpacks it and hands it to Parallels; then the VM boots, first boot applies its defaults after a countdown, and the Omarchy desktop opens with a window explaining the Mac-specific keys](docs/assets/end-to-end.gif)
+
+<sub>One real run of v0.1.0, from the command to the desktop — every figure is one that run produced. Only the pacing is shortened: it takes about seven minutes to install and a minute to boot.</sub>
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/azilnik/omarchy-apple-silicon-parallels/main/install.sh | bash
 ```
 
 Pick **Quick** at the prompt (or pass `--quick`) and the next thing you touch is the Omarchy desktop. Arrow keys to choose; **Custom** lets you pick the folder and what happens after import.
-
-<sub>A real install of v0.1.0 — every figure above is one that run produced. Only the pacing is shortened; the whole thing takes about seven minutes.</sub>
 
 ## What you get
 
@@ -24,10 +24,6 @@ Pick **Quick** at the prompt (or pass `--quick`) and the next thing you touch is
 - **Omarchy's x86-only apps, rebuilt for ARM**: omacalc, omawrite, omacut, ttfx, tobi-try, the Hyprland share picker, and Obsidian ([from source](packages/))
 - **First-boot setup** — username/password/hostname, or a 10-second countdown to sensible defaults, then a one-time welcome on the desktop covering what Parallels changes
 - **Verifiable**: `omarchy-parallels-verify` inside the VM prints a green/red health report
-
-![The Omarchy desktop with a floating terminal window titled "Omarchy on your Mac", listing that Super is Cmd, the menu is Cmd+Space, the terminal is Cmd+Ctrl+Return and Cmd+K shows every shortcut, with a note explaining why Parallels takes Cmd+Return](docs/assets/vm-welcome.png)
-
-<sub>What the VM shows you the first time the desktop opens.</sub>
 
 ## Install
 

@@ -153,4 +153,25 @@ The tape's `Hide`/`Show` windows are timed against the plan's segment durations,
 `play-cast.py` prints to stderr — re-tune them together if the plan changes.
 
 The cast itself is not committed (it is megabytes of escape sequences), so regenerating the
-hero means doing a real download. The other two GIFs come from the harness and need neither.
+hero means doing a real download. The menu and resilience GIFs come from the harness and need
+neither.
+
+### The end-to-end GIF
+
+`docs/assets/end-to-end.gif` joins that installer recording to a capture of the VM booting —
+first boot, the countdown, the desktop, the welcome window. The two halves are captured very
+differently:
+
+```sh
+vhs test/tui/rec-hero.tape                    # writes build/out/installer.mp4
+# …then, while the VM reboots, capture the guest framebuffer:
+while :; do prlctl capture Omarchy --file "/tmp/vmframes/f$(date +%s%N).png"; done
+test/tui/make-end-to-end.sh /tmp/vmframes docs/assets/end-to-end.gif
+```
+
+The VM half uses `prlctl capture` rather than screen-recording the Parallels window. Screen
+recording gives a far better frame rate, but it only works while the Mac is unlocked and it
+sees whatever else is on screen; `prlctl capture` works headlessly and sees nothing but the
+guest. It tops out near 2 fps, which is enough here — the boot is mostly static screens, and
+the one animation that matters, the first-boot countdown, still gets two or three frames a
+second.

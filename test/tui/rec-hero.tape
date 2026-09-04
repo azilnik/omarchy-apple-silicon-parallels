@@ -12,6 +12,7 @@
 #   python3 test/tui/record-cast.py --out /tmp/hero.cast --cols 100 --rows 30 -- bash install.sh --quick
 #   vhs test/tui/rec-hero.tape
 Output docs/assets/install-quick.gif
+Output build/out/installer.mp4
 Set Shell bash
 Set FontSize 15
 Set Width 1080
