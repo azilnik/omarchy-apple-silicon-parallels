@@ -19,6 +19,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning: [S
   seconds — and still emits byte-identical JSON when piped or given `--json`.
 - First boot: a draining countdown bar, arrow-key setup, masked password entry with
   confirmation, and a summary before anything is applied.
+- **A one-time welcome on the desktop.** The Mac-specific orientation — Super is Cmd, where the
+  terminal moved to, how to get crisp text — now appears in a floating window the first time the
+  desktop comes up, instead of scrolling past in a terminal the user has already left. It runs
+  from a `post-boot` hook in the user's own Omarchy config (so `omarchy-update` cannot remove
+  it), is guarded by Omarchy's `omarchy-done` marker store, and can be reopened any time with
+  `omarchy-parallels-welcome`.
 - `host/uninstall.sh` shares the same UI and clears the keyboard-profile preference too.
 - `make tui-test`: 50 headless checks (library units, installer flow, failure paths, bundler
   safety, manifest hardening, narrow terminals, render performance) against a local fake

@@ -213,6 +213,16 @@ printf '\n== repository invariants ==\n'
   || bad "install.sh is not bash-3.2 clean"
 /bin/bash -n "$REPO/lib/tui.sh" 2>/dev/null && ok "lib/tui.sh parses under bash 3.2" \
   || bad "lib/tui.sh is not bash-3.2 clean"
+# The welcome must never be able to block a login: it has to run headlessly, exit 0, and stay
+# quiet when its marker is already set.
+out=$(OMARCHY_TUI=plain bash "$REPO/guest/omarchy-parallels-welcome.sh" 2>&1 </dev/null); rc=$?
+[[ $rc -eq 0 ]] && ok "the in-VM welcome runs headlessly and exits 0" || bad "welcome exit $rc"
+have "$out" "Cmd" && ok "the welcome names the Mac key translation" || bad "welcome does not mention Cmd"
+grep -q 'omarchy-done check omarchy-parallels-welcome' "$REPO/guest/hooks/omarchy-parallels-welcome.post-boot" \
+  && ok "the post-boot hook is guarded by a once-marker" || bad "welcome hook would fire every boot"
+grep -q 'omarchy-parallels-welcome' "$REPO/build/sysprep.sh" \
+  && ok "sysprep re-arms the welcome for the recipient" || bad "packaged image would ship the welcome already shown"
+
 for g in "$REPO"/guest/*.sh; do
   bash -n "$g" 2>/dev/null || bad "guest script does not parse: $(basename "$g")"
 done
