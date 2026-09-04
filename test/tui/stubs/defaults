@@ -1,0 +1,9 @@
+#!/bin/bash
+# Never let the harness write to the real Parallels preferences.
+STATE="${OMARCHY_STUB_STATE:-/tmp/omarchy-stub}"; mkdir -p "$STATE"
+echo "defaults $*" >> "$STATE/defaults.log"
+case "$1" in
+  read) case "$2" in *Parallels*Info.plist) echo "${OMARCHY_STUB_PRL_VERSION:-26.1.2}"; exit 0 ;; esac; exit 1 ;;
+  write) exit 0 ;;
+esac
+exit 0

@@ -36,6 +36,11 @@ done
 $SSH 'tail -2 /tmp/build-update.log' || true
 
 echo "==> installing guest payload"
+# The terminal UI library is shared with the macOS installer (which inlines it); in the guest
+# it is a real file that firstboot and verify source. Install it first — they degrade without
+# it, but only to plain text.
+$SSH 'install -d -m 755 /usr/local/lib/omarchy-parallels'
+$SSH 'cat > /usr/local/lib/omarchy-parallels/tui.sh && chmod 644 /usr/local/lib/omarchy-parallels/tui.sh' < "$REPO/lib/tui.sh"
 for f in omarchy-parallels-verify omarchy-parallels-autoresize omarchy-parallels-firstboot omarchy-parallels-cleanup; do
   $SSH "cat > /usr/local/bin/$f && chmod 755 /usr/local/bin/$f" < "$REPO/guest/$f.sh"
 done
@@ -96,7 +101,7 @@ echo "==> revoking temporary sudo grant"
 $SSH 'rm -f /etc/sudoers.d/90-build-temp'
 
 echo "==> Tier 1 gate: omarchy-parallels-verify"
-if $SSH 'omarchy-parallels-verify' > /tmp/verify.json; then
+if $SSH 'omarchy-parallels-verify --json' > /tmp/verify.json; then
   echo "==> VERIFY PASS"
   cat /tmp/verify.json
 else

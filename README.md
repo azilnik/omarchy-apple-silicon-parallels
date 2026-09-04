@@ -5,15 +5,17 @@
 ![Omarchy 4 Quattro](https://img.shields.io/badge/Omarchy-4_%22Quattro%22-5e2ca5)
 ![Hyprland + Quickshell](https://img.shields.io/badge/Hyprland-%2B_Quickshell-1793d1)
 
-**Omarchy 4 "Quattro" as a ready-to-run VM for Apple Silicon Macs (M1–M4)** — the full Hyprland + Quickshell Arch desktop with native HiDPI, live window-resize, and a 60-second first boot. One command, no dual-boot, no bare-metal risk, on every Parallels edition including the free trial — so you can [test-drive Omarchy](https://omarchy.org) for two weeks with no spare hardware.
+**Omarchy 4 "Quattro" as a ready-to-run VM for Apple Silicon Macs (M1–M4)** — the full Hyprland + Quickshell Arch desktop with native HiDPI, live window-resize, and a first boot that reaches the desktop in about a minute. One command, no dual-boot, no bare-metal risk, on every Parallels edition including the free trial — so you can [test-drive Omarchy](https://omarchy.org) for two weeks with no spare hardware.
 
-![One command installs Omarchy for Parallels on Apple Silicon — the installer downloads, verifies, imports, and boots straight to the Hyprland + Quickshell desktop](docs/assets/demo.gif)
+![The installer running: a live checklist showing the Mac checked, the release found, then the image downloading with size, speed and time remaining, unpacking, importing into Parallels and booting](docs/assets/install-quick.gif)
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/azilnik/omarchy-apple-silicon-parallels/main/install.sh | bash
 ```
 
-Pick **YOLO** at the prompt (or pass `--yolo`) and the next thing you touch is the Omarchy desktop.
+Pick **Quick** at the prompt (or pass `--quick`) and the next thing you touch is the Omarchy desktop. Arrow keys to choose; **Custom** lets you pick the folder and what happens after import.
+
+<sub>Recorded against the local test harness (`test/tui/`), so the version and sizes are the fixture's — the flow is the real one.</sub>
 
 ## What you get
 
@@ -25,20 +27,22 @@ Pick **YOLO** at the prompt (or pass `--yolo`) and the next thing you touch is t
 
 ## Install
 
-Requirements: Apple Silicon Mac (M1–M4+), Parallels Desktop (any edition), ~25 GB free.
+Requirements: Apple Silicon Mac (M1–M4+), Parallels Desktop (any edition), and about **25 GB free** — a ~4.7 GB download that unpacks to a ~24 GB virtual machine.
 
-The one-liner above downloads, verifies, imports, and boots. Prefer manual? Grab the image from the [releases manifest](https://dl.omarchy-apple-silicon.zilnik.me/latest.json), verify the checksum, unzip into `~/Parallels`, double-click `Omarchy.pvm` (choose **Copied** if asked), then set View → Retina Resolution → **More Space**.
+The one-liner downloads, verifies, imports and boots, showing progress for each. It is safe to interrupt: re-running resumes the download where it stopped. Parallels may ask a question of its own during the import (if it asks whether the VM was **copied or moved**, either answer works).
+
+Prefer manual? Grab the image from the [releases manifest](https://dl.omarchy-apple-silicon.zilnik.me/latest.json), verify the checksum, unzip into `~/Parallels`, double-click `Omarchy.pvm` (choose **Copied** if asked), then set View → Retina Resolution → **More Space**.
 
 ## First things to know
 
 - **`Super` is `⌘ Cmd`.** Menu is **Cmd+Space**; terminal is **Cmd+Ctrl+Return** (Parallels keeps Cmd+Return for fullscreen). Full map + how to get native bindings back: [docs/keybindings.md](docs/keybindings.md).
-- Default login on the YOLO path is **`omarchy` / `omarchy`** — run **`passwd`** to change it.
+- **You are logged in automatically**, but the password still matters — you need it for `sudo` and the lock screen. On the Quick path it is **`omarchy`**; open a terminal and run **`passwd`** to set your own.
 
 ## Security & provenance
 
-- Every release ships a **sha256 + minisign signature** and the installer verifies both (key: [`minisign.pub`](minisign.pub)). The image is served from Cloudflare R2 (GitHub caps assets at 2 GiB), but the GitHub-hosted checksum and signature are what you trust — not the host.
+- Every release ships a **sha256 + minisign signature**. The installer always verifies the checksum, and verifies the signature too when `minisign` is installed (`brew install minisign`); it says which it checked (key: [`minisign.pub`](minisign.pub)). The image is served from Cloudflare R2 (GitHub caps assets at 2 GiB), but the GitHub-hosted checksum and signature are what you trust — not the host.
 - Built **solely by the public scripts in [`build/`](build/)** from a stock [Archboot](https://archboot.com) aarch64 base plus the [`omarchy-arm`](https://github.com/alexisraitano-myffu/omarchy-arm) port (audited: no `curl | bash`, no `eval`, no install hooks). Rebuild it yourself: [docs/rebuild-from-iso.md](docs/rebuild-from-iso.md).
-- **Sysprepped**: no SSH/host keys, no machine-id, no credentials or shell history — first boot regenerates identity, and SSH is off by default.
+- **Nothing personal in the image**: no SSH or host keys, no machine-id, no credentials, no shell history. First boot mints a fresh identity, and SSH stays off unless you ask for it.
 - Parallels Tools (userspace only) runs under *your* licensed Parallels; a Tools-free rebuild path is in the docs.
 - [Report a vulnerability](SECURITY.md) · [AI disclosure](AI-DISCLOSURE.md) — built by AI under human direction.
 
@@ -51,4 +55,6 @@ The one-liner above downloads, verifies, imports, and boots. Prefer manual? Grab
 
 ## Uninstall & license
 
-`./host/uninstall.sh` removes it. Scripts and docs are MIT; Omarchy, Arch Linux ARM, and Parallels Tools keep their own licenses.
+`./host/uninstall.sh` removes the VM and its host settings (it asks you to type `delete` first). Scripts and docs are MIT; Omarchy, Arch Linux ARM, and Parallels Tools keep their own licenses.
+
+The installer and the in-VM setup share one terminal UI; how it adapts from a 24-bit Mac terminal to an eight-colour Linux console is written up in [docs/tui.md](docs/tui.md).

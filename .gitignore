@@ -1,3 +1,6 @@
 dist/
 *.zip
 *.minisig
+
+# Working output from the TUI harness and recordings — regenerate with `make tui-test` / vhs
+build/out/
