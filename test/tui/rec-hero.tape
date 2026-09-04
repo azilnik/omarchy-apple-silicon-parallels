@@ -23,27 +23,29 @@ Set Framerate 24
 
 Hide
 Type "clear" Enter
-Type "python3 test/tui/play-cast.py /tmp/hero.cast --fps 120 --max-gap 0.12 --plan '0-4@1,4-164@500,164-170@1,170-197@100,197-202@1,202-588@500,588-594@1,594-597@10,597-600@1' 2>/dev/null"
+Type "python3 test/tui/play-cast.py /tmp/hero.cast --fps 120 --max-gap 0.12 --plan '0-3@1,3-165@500,165-169@1,169-197@100,197-200@1,200-589@500,589-593@1,593-596@8,596-600@1' 2>/dev/null"
 Enter
 Sleep 400ms
 
+# Hide/Show windows are timed against the plan's segment durations, which play-cast.py prints
+# to stderr. Re-tune them together if the plan changes.
 Show
-Sleep 4s
+Sleep 2800ms
 Hide
-Sleep 650ms
+Sleep 980ms
 Show
-Sleep 6400ms
+Sleep 4050ms
 Hide
 Sleep 260ms
 Show
-Sleep 3s
+Sleep 1050ms
 Hide
-Sleep 1430ms
+Sleep 1220ms
 Show
-Sleep 6500ms
+Sleep 4050ms
 Hide
-Sleep 490ms
+Sleep 430ms
 Show
-Sleep 3s
+Sleep 4500ms
 Screenshot build/out/hero-end.png
-Sleep 1500ms
+Sleep 500ms
