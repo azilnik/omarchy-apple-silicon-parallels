@@ -31,6 +31,13 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning: [S
   release server with `prlctl`/`open`/`defaults` stubbed. `make lint` matches CI severity and
   fails if the inlined library drifts.
 
+### Added — the README shows the whole thing
+- `docs/assets/end-to-end.gif`: one real run of v0.1.0 from the command to the desktop — the
+  installer, then the VM booting, first boot applying its defaults after the countdown, and the
+  Omarchy desktop opening with the Mac-keys welcome. Reproducible with
+  `test/tui/make-end-to-end.sh`. The obsolete 9 MB `demo.gif`, which showed the previous
+  installer UI, is gone.
+
 ### Fixed — found by testing this UI on real hardware
 - **Progress bars rendered a third of their width** and spinner glyphs were mangled whenever
   `LANG` was unset: bash counts bytes, not characters, without a multibyte `LC_CTYPE`.
