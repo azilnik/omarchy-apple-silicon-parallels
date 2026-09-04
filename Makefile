@@ -39,5 +39,5 @@ lint:
 	./build/bundle.sh --check
 	shellcheck --severity=warning -e SC1091 -e SC2029 -e SC2154 -e SC2034 -e SC2012 \
 	  install.sh host/*.sh build/refresh.sh build/sysprep.sh build/package.sh build/release.sh \
-	  build/bundle.sh build/vm-ssh guest/*.sh test/run-tests.sh test/tui/harness.sh test/tui/run-tui-tests.sh
+	  build/bundle.sh build/vm-ssh guest/*.sh guest/hooks/* test/run-tests.sh test/tui/harness.sh test/tui/run-tui-tests.sh
 	shellcheck --severity=warning -e SC1091 -e SC2034 -e SC2154 -s bash lib/tui.sh

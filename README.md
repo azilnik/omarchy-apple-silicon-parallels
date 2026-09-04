@@ -22,8 +22,12 @@ Pick **Quick** at the prompt (or pass `--quick`) and the next thing you touch is
 - **Omarchy 4 (Quattro)** on Arch Linux ARM — Hyprland 0.56, Quickshell, SDDM, the full theme system
 - **Native HiDPI** matched to your Retina display, and a desktop that **follows the Parallels window** as you resize it
 - **Omarchy's x86-only apps, rebuilt for ARM**: omacalc, omawrite, omacut, ttfx, tobi-try, the Hyprland share picker, and Obsidian ([from source](packages/))
-- **First-boot setup** — username/password/hostname, or a 10-second countdown to sensible defaults
+- **First-boot setup** — username/password/hostname, or a 10-second countdown to sensible defaults, then a one-time welcome on the desktop covering what Parallels changes
 - **Verifiable**: `omarchy-parallels-verify` inside the VM prints a green/red health report
+
+![The Omarchy desktop with a floating terminal window titled "Omarchy on your Mac", listing that Super is Cmd, the menu is Cmd+Space, the terminal is Cmd+Ctrl+Return and Cmd+K shows every shortcut, with a note explaining why Parallels takes Cmd+Return](docs/assets/vm-welcome.png)
+
+<sub>What the VM shows you the first time the desktop opens.</sub>
 
 ## Install
 
@@ -35,6 +39,7 @@ Prefer manual? Grab the image from the [releases manifest](https://dl.omarchy-ap
 
 ## First things to know
 
+- **Omarchy tells you this itself.** The first time the desktop comes up, a window explains the Mac-specific keys; run `omarchy-parallels-welcome` to see it again.
 - **`Super` is `⌘ Cmd`.** Menu is **Cmd+Space**; terminal is **Cmd+Ctrl+Return** (Parallels keeps Cmd+Return for fullscreen). Full map + how to get native bindings back: [docs/keybindings.md](docs/keybindings.md).
 - **You are logged in automatically**, but the password still matters — you need it for `sudo` and the lock screen. On the Quick path it is **`omarchy`**; open a terminal and run **`passwd`** to set your own.
 

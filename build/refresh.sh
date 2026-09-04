@@ -41,7 +41,7 @@ echo "==> installing guest payload"
 # it, but only to plain text.
 $SSH 'install -d -m 755 /usr/local/lib/omarchy-parallels'
 $SSH 'cat > /usr/local/lib/omarchy-parallels/tui.sh && chmod 644 /usr/local/lib/omarchy-parallels/tui.sh' < "$REPO/lib/tui.sh"
-for f in omarchy-parallels-verify omarchy-parallels-autoresize omarchy-parallels-firstboot omarchy-parallels-cleanup; do
+for f in omarchy-parallels-verify omarchy-parallels-autoresize omarchy-parallels-firstboot omarchy-parallels-cleanup omarchy-parallels-welcome; do
   $SSH "cat > /usr/local/bin/$f && chmod 755 /usr/local/bin/$f" < "$REPO/guest/$f.sh"
 done
 $SSH 'cat > /etc/systemd/system/omarchy-parallels-firstboot.service' < "$REPO/guest/omarchy-parallels-firstboot.service"
@@ -54,6 +54,17 @@ $SSH "rm -f $BUILD_HOME/.local/bin/omarchy-parallels-autoresize; systemctl daemo
 BUID=\$(id -u $BUILD_USER)
 sudo -u $BUILD_USER XDG_RUNTIME_DIR=/run/user/\$BUID systemctl --user daemon-reload
 sudo -u $BUILD_USER XDG_RUNTIME_DIR=/run/user/\$BUID systemctl --user enable --now parallels-autoresize.service"
+
+# The Mac-specific welcome, shown once when the desktop first comes up. It goes in the user's
+# own hook directory rather than /usr/share/omarchy, so an omarchy-update cannot remove it —
+# and Omarchy's first-run list is hardcoded, so dropping a file in its install/ tree would
+# never run. The home directory travels with the user through the first-boot rename.
+$SSH "install -d -o $BUILD_USER -g $BUILD_USER $BUILD_HOME/.config/omarchy/hooks/post-boot.d"
+$SSH "cat > $BUILD_HOME/.config/omarchy/hooks/post-boot.d/omarchy-parallels-welcome
+      chmod 755 $BUILD_HOME/.config/omarchy/hooks/post-boot.d/omarchy-parallels-welcome
+      chown -R $BUILD_USER:$BUILD_USER $BUILD_HOME/.config/omarchy" < "$REPO/guest/hooks/omarchy-parallels-welcome.post-boot"
+# The image is built with the welcome already shown; clear the marker so the recipient sees it.
+$SSH "rm -f $BUILD_HOME/.local/state/omarchy/done/omarchy-parallels-welcome"
 
 # Mac/Parallels keybinding compatibility — append the drop-in to the user's bindings.lua,
 # idempotently (remove any prior block between our markers first, then re-append).

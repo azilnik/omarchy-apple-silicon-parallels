@@ -481,6 +481,16 @@ tui_header() { # tui_header <title> [subtitle]
   printf '\n\n'
 }
 
+tui_kv() { # tui_kv <marker-colour> <marker> <key> <value> — a reference row on the task grid
+  # Static reference screens share the task list's columns so a cheatsheet and a checklist
+  # read as the same surface rather than two different programs.
+  local pad
+  _tui_pad pad "$3" "$_TUI_LABELW"
+  printf '  %s%s%s  %s%s%s  %s%s%s\n' "$1" "$2" "$TUI_R" "$TUI_FG" "$pad" "$TUI_R" "$TUI_DIM" "$4" "$TUI_R"
+}
+
+tui_label_width() { _TUI_LABELW=$1; }   # fix the column when there is no task list to size it
+
 tui_rule()  { printf '  %s%s%s\n' "$TUI_FAINT" "${_TUI_RULE[$((TUI_COLS - 4))]}" "$TUI_R"; }
 tui_note()  { local t; _tui_trunc t "$1" $((TUI_COLS - 6)); printf '     %s%s%s\n' "$TUI_DIM" "$t" "$TUI_R"; }
 tui_hint()  { local t; _tui_trunc t "$1" $((TUI_COLS - 8)); printf '     %s%s%s %s%s%s\n' "$TUI_FAINT" "$TUI_G_BULLET" "$TUI_R" "$TUI_DIM" "$t" "$TUI_R"; }
