@@ -15,7 +15,7 @@ curl -fsSL https://raw.githubusercontent.com/azilnik/omarchy-apple-silicon-paral
 
 Pick **Quick** at the prompt (or pass `--quick`) and the next thing you touch is the Omarchy desktop. Arrow keys to choose; **Custom** lets you pick the folder and what happens after import.
 
-<sub>Recorded against the local test harness (`test/tui/`), so the version and sizes are the fixture's — the flow is the real one.</sub>
+<sub>A real install of v0.1.0 — every figure above is one that run produced. Only the pacing is shortened; the whole thing takes about seven minutes.</sub>
 
 ## What you get
 

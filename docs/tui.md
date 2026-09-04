@@ -117,6 +117,25 @@ That screenshot is the only honest test of a console font.
 GIFs in `docs/assets/` are reproducible and do not require a real 4.7 GB download.
 
 ```sh
-vhs test/tui/rec-quick.tape    # docs/assets/install-quick.gif
-vhs test/tui/rec-menu.tape     # docs/assets/install-menu.gif
+vhs test/tui/rec-menu.tape        # docs/assets/install-menu.gif
+vhs test/tui/rec-resilience.tape  # docs/assets/install-resilience.gif
 ```
+
+The README hero is different: its figures have to be the real ones — the actual release
+version, the actual 4.7 GB download, the actual transfer rates and the 24 GB unpack — and a
+real run takes about fifteen minutes, which is no use as a GIF.
+
+So it is recorded once from a real install and replayed compressed. `record-cast.py` captures
+the session with timings; `play-cast.py` replays it dividing every delay by `--speed`. None of
+the bytes change, so every number on screen is what the run actually produced; only the pacing
+is shortened.
+
+```sh
+# a real install — needs ~30 GB free and no VM registered as "Omarchy"
+python3 test/tui/record-cast.py --out /tmp/hero.cast --cols 100 --rows 30 -- \
+  bash install.sh --quick
+vhs test/tui/rec-hero.tape        # docs/assets/install-quick.gif
+```
+
+The cast itself is not committed (it is megabytes of escape sequences), so regenerating the
+hero means doing a real download. The other two GIFs come from the harness and need neither.

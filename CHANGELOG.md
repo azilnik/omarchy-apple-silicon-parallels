@@ -55,6 +55,11 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning: [S
 - `[ -r /dev/tty ]` is not a tty test — the open has to be attempted, and `2>/dev/null` has to
   come *before* `</dev/tty` or the shell's own error reaches the terminal.
 - The live region stands down below 44 columns instead of emitting lines that wrap.
+- Everything printed after the live region closes — panels, notes, hints — now erases to the
+  end of the line. Without that, a short line (the blank row inside the completion panel) left
+  the tail of an older frame showing through it. Invisible in the byte stream and in every
+  plain-mode test; `make tui-test` now renders a recorded session into a virtual screen and
+  asserts on what a terminal would actually display.
 - Colours adapt to the terminal's background (OSC 11), so the green check is not 1.75:1 on
   macOS Terminal's default white profile.
 - Honest reporting: the installer says when it skipped the signature check and why, and no
