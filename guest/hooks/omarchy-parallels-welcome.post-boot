@@ -1,0 +1,19 @@
+#!/bin/bash
+# post-boot hook: show the Parallels/Mac welcome once, in a floating terminal.
+#
+# Installed into ~/.config/omarchy/hooks/post-boot.d/ — the user's own config, so an
+# omarchy-update never removes it. Omarchy runs post-boot hooks a couple of seconds after
+# Hyprland starts, which is the first moment a window can actually be shown.
+#
+# The --once guard lives in the welcome script (Omarchy's own `omarchy-done` marker store), so
+# this hook stays a one-liner and re-running it by hand is harmless.
+command -v omarchy-parallels-welcome >/dev/null 2>&1 || exit 0
+omarchy-done check omarchy-parallels-welcome 2>/dev/null && exit 0
+
+# Omarchy's own terminal (xdg-terminal-exec) and app-id, so Hyprland's float rules and the
+# active theme apply — but not its presentation wrapper. That wrapper appends a gum "press any
+# key" which does not reliably hold the window when it is launched this early in the session,
+# and the window vanishing the moment it finishes drawing is worse than never showing it. The
+# welcome script holds itself open instead.
+exec setsid uwsm-app -- xdg-terminal-exec --app-id=org.omarchy.terminal --title="Omarchy on your Mac" \
+  -e bash -lc 'omarchy-parallels-welcome --once'

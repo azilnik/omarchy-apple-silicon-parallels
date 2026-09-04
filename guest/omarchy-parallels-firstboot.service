@@ -9,6 +9,9 @@ Conflicts=getty@tty1.service
 Type=oneshot
 StandardInput=tty
 StandardOutput=tty
+# Menus and prompts render on stderr so their return value can be captured on stdout. Without
+# this line stderr would default to the journal and every prompt would be invisible on tty1.
+StandardError=tty
 TTYPath=/dev/tty1
 TTYReset=yes
 TTYVHangup=yes

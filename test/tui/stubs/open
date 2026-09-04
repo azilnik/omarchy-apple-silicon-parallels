@@ -1,0 +1,5 @@
+#!/bin/bash
+STATE="${OMARCHY_STUB_STATE:-/tmp/omarchy-stub}"; mkdir -p "$STATE"
+echo "open $*" >> "$STATE/open.log"
+[ -n "${OMARCHY_STUB_OPEN_FAILS:-}" ] && exit 1
+exit 0

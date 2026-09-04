@@ -1,0 +1,18 @@
+#!/bin/bash
+# Stub prlctl for the installer harness. Registration appears after OMARCHY_STUB_REGISTER_AFTER
+# seconds so the "waiting for Parallels" progress path is genuinely exercised.
+STATE="${OMARCHY_STUB_STATE:-/tmp/omarchy-stub}"
+mkdir -p "$STATE"
+echo "prlctl $*" >> "$STATE/prlctl.log"
+case "$1 $2" in
+  "list -a"|"list --no-header"|"list -a1")
+    START=$(cat "$STATE/first-list" 2>/dev/null)
+    [ -z "$START" ] && { START=$(date +%s); echo "$START" > "$STATE/first-list"; }
+    AFTER=${OMARCHY_STUB_REGISTER_AFTER:-4}
+    [ -f "$STATE/never-register" ] && exit 0
+    if [ $(( $(date +%s) - START )) -ge "$AFTER" ]; then
+      echo "{6de04848-268b-4d4d-b642-0cf4f1484b67}  stopped      -               Omarchy"
+    fi
+    exit 0 ;;
+esac
+exit 0
