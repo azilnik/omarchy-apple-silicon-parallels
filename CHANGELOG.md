@@ -34,9 +34,11 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning: [S
 ### Added — the README shows the whole thing
 - `docs/assets/end-to-end.gif`: one real run of v0.1.0 from the command to the desktop — the
   installer, then the VM booting, first boot applying its defaults after the countdown, and the
-  Omarchy desktop opening with the Mac-keys welcome. Reproducible with
-  `test/tui/make-end-to-end.sh`. The obsolete 9 MB `demo.gif`, which showed the previous
-  installer UI, is gone.
+  Omarchy desktop opening with the Mac-keys welcome. It is cut for beats rather than coverage,
+  and framed on the Omarchy wallpaper with keyframed camera moves (`tools/compose-demo.py`),
+  following reelkit's rule that a push-in must only ever downsample. Reproducible with
+  `test/tui/make-end-to-end.sh`. The obsolete `demo.gif`, which showed the previous installer
+  UI, is gone.
 
 ### Fixed — found by testing this UI on real hardware
 - **Progress bars rendered a third of their width** and spinner glyphs were mangled whenever

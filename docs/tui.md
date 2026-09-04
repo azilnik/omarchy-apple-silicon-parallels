@@ -175,3 +175,24 @@ sees whatever else is on screen; `prlctl capture` works headlessly and sees noth
 guest. It tops out near 2 fps, which is enough here — the boot is mostly static screens, and
 the one animation that matters, the first-boot countdown, still gets two or three frames a
 second.
+
+### Camera moves
+
+Both halves then go through `tools/compose-demo.py`, which frames the source on the Omarchy
+wallpaper and moves a camera over it from keyframes in `build/shots/*.json`.
+
+That is [reelkit](https://github.com/azilnik/reelkit)'s idea. Reelkit shoots an app flat and
+far above the composition size, then composes the camera afterwards, so a push-in only ever
+crops and shrinks and never blurs. Its capture stage drives a web app with Playwright, so it
+cannot shoot a terminal or a VM — but the principle transfers, and it is the whole reason the
+close-ups stay sharp:
+
+- the installer is rendered at 2600 px wide (`FontSize 36`) into a 3200×2000 scene, and the
+  tightest shot crops to 1750 px — still downsampling into a 1200 px frame;
+- the VM is placed at its native 1024×768 in a 1600×1000 scene, so its tightest shot is 1:1.
+
+Two things to know if you re-cut it. Frame the camera on the *content*, not the scene centre —
+the terminal's text is left-aligned, and centring the crop chops the left edge off every line.
+And a camera move changes every pixel of every frame, so GIF's inter-frame compression has
+nothing to work with: colours, dither and width move the file size by a few per cent, and
+shortening the cut is the only real lever.
