@@ -81,6 +81,9 @@ rm -f /etc/sudoers.d/90-build-temp /etc/sudoers.d/20-omarchy-install 2>/dev/null
 install -d /var/lib/omarchy-parallels
 touch /var/lib/omarchy-parallels/firstboot-pending
 systemctl enable omarchy-parallels-firstboot.service >/dev/null 2>&1
+# The image was built by logging into the desktop, which marks the Mac welcome as already
+# shown. Clear that marker so the recipient actually gets it on their first login.
+rm -f /home/*/.local/state/omarchy/done/omarchy-parallels-welcome 2>/dev/null || true
 # arm the one-shot that clears the cold-start crash artifacts once the first desktop settles
 touch /var/lib/omarchy-parallels/cleanup-pending
 systemctl enable omarchy-parallels-cleanup.service >/dev/null 2>&1

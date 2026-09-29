@@ -154,12 +154,12 @@ else t_fail "desktop frame is near-black (${SZ:-0} bytes) — wallpaper not pain
 # Read the JSON verdict, not the exit code (prlctl exec mangles those); retry while services settle.
 VERDOK=0
 for _ in $(seq 1 6); do
-  VERD=$(X '/usr/local/bin/omarchy-parallels-verify 2>/dev/null')
+  VERD=$(X '/usr/local/bin/omarchy-parallels-verify --json 2>/dev/null')
   echo "$VERD" | grep -q '"verdict": "pass"' && { VERDOK=1; break; }
   sleep 4
 done
 [[ $VERDOK -eq 1 ]] && t_ok "omarchy-parallels-verify verdict=pass (all checks)" \
-  || t_fail "omarchy-parallels-verify not pass (run: prlctl exec $NAME /usr/local/bin/omarchy-parallels-verify)"
+  || t_fail "omarchy-parallels-verify not pass (run: prlctl exec $NAME /usr/local/bin/omarchy-parallels-verify --json)"
 
 echo
 echo "==> RESULT: $PASS passed, $FAIL failed"

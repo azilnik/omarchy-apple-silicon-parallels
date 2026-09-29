@@ -1,0 +1,198 @@
+# The terminal UI
+
+Two programs share one look: the macOS installer (`install.sh`) and the first-boot setup and
+health check inside the VM (`guest/omarchy-parallels-*`). Both render through `lib/tui.sh`.
+
+They run in very different terminals, and most of the design here is a consequence of that.
+
+| | host | guest |
+|---|---|---|
+| shell | macOS `/bin/bash` **3.2.57** | Arch ARM bash 5 |
+| terminal | Terminal.app / iTerm, usually 24-bit colour | tty1, `TERM=linux`, 8 colours |
+| font | whatever the user picked; full Unicode | the kernel's built-in 256-glyph console font |
+| locale | usually UTF-8, sometimes nothing | nothing |
+| input | `/dev/tty` (stdin is the script, under `curl \| bash`) | `/dev/tty1` via systemd |
+
+## Capability tiers
+
+`tui_init` picks one of three tiers and every glyph, colour and animation follows from it.
+Override with `OMARCHY_TUI=fancy|basic|plain`; `NO_COLOR`, a non-tty stdout, `TERM=dumb` and
+`CI` all force plain.
+
+- **3 — fancy.** UTF-8 on a real emulator. Braille spinner, eighth-block progress bars, `✓`/`✗`.
+- **2 — basic.** UTF-8 on a console font. Half-block rotation, `√`/`×`, full/light-shade bars.
+- **1 — plain.** ASCII only, no colour, no cursor movement: one line per state change, so a
+  piped or logged run reads like an ordinary build log.
+
+### Tier 2 is not "tier 3 with fewer colours"
+
+The Linux console font has 256 glyphs and **no fallback**. An unmapped codepoint is drawn as
+some *other* glyph, silently — so a UI that assumes Unicode does not degrade, it lies. Every
+tier-2 character was chosen by drawing candidates on a real tty1 and photographing the
+framebuffer (`test/tui/deploy-guest.sh <vm> glyphs`).
+
+What that probe found, and what it changed:
+
+| wanted | on tty1 | used instead |
+|---|---|---|
+| `⠋⠙⠹…` braille spinner | random letters | — |
+| `▖▘▝▗` quadrant spinner | **all four draw the same glyph** — the spinner appears frozen | `▀ ▐ ▄ ▌`, which really rotates |
+| `✓` | `ʊ` | `√` (U+221A), which reads as a check |
+| `▏▎▍▌` eighth blocks | `#` | no partial cell; whole blocks only |
+| `…` | `.` | `...` |
+| `⌘` | `■` | the word `Cmd` |
+| `░ ▒ ▓ █` | four distinct shades | kept |
+| `┌ ┐ └ ┘ ─ │`, `» « → ↑↓ ·` | correct | kept |
+
+## The live region
+
+The renderer keeps N lines at the bottom of the screen and rewrites them in place with
+cursor-up plus erase-line. It never clears the screen and never scrolls on its own, so
+scrollback survives and `tui_commit` can leave a finished block behind and start a fresh one.
+
+**While a region is open, nothing else may write to stdout or stderr.** A stray line
+desynchronises the cursor accounting and the display tears. Every subprocess in `install.sh`
+is redirected to a log for exactly this reason, which is also why a failed install has one
+file to attach to a bug report.
+
+## Two rules that are easy to break
+
+**The render path must not fork.** No command substitution, no subshells, no external
+commands inside `_tui_render` or the menu loops — everything composes with `printf -v` and
+parameter expansion, and each frame is emitted as a single `write`. Bars are two lookups into
+prefix arrays built once at init, not loops. A frame that costs a dozen forks is what makes a
+shell TUI feel like a shell script. `make tui-test` asserts 300 frames of an 8-task list
+render in under a second.
+
+**Bash counts characters only in a multibyte locale.** With no `LANG` set — which is the
+default on tty1, and common enough on a Mac — `${#s}` and `${s:i:1}` count *bytes*. That
+silently shreds every glyph the UI slices and renders progress bars at a third of their
+intended width. `_tui_fix_ctype` repairs `LC_CTYPE` if it can and drops to ASCII if it cannot,
+because in ASCII bytes and characters agree.
+
+A related trap, which cost an afternoon: an unbraced `$VAR` immediately followed by a
+multibyte character has that character's leading byte swallowed into the variable name —
+`"$TUI_FAINT·"` is read as `${TUI_FAINT\xc2}`, which under `set -u` aborts the script. It only
+bites where a glyph follows a bare expansion, so it survives every ASCII test. Brace it.
+`make tui-test` greps for the pattern.
+
+## bash 3.2
+
+`install.sh` is piped to whatever `bash` is on a stranger's Mac, which is 3.2.57. No
+associative arrays, no `read -t <fraction>`, no `${var^^}`, no `mapfile`, and no bare
+`"${arr[@]}"` on an empty array under `set -u`. Task state therefore lives in parallel indexed
+arrays with a linear id scan; the lists are about eight items long, so the scan is cheaper
+than any cleverness would be.
+
+`install.sh` must also stay a single self-contained file, because it is fetched by URL and
+piped straight to bash — it cannot source anything. `build/bundle.sh` inlines `lib/tui.sh`
+between marker comments; **edit `lib/tui.sh`, then `make bundle`**. `make lint` fails if the
+inlined copy has drifted.
+
+## Testing
+
+```sh
+make tui-test      # library units, installer flow, failure paths, source hazards
+make lint          # shellcheck at CI severity + the bundle drift check
+```
+
+`test/tui/harness.sh` runs the whole installer end to end against a local throttled HTTP
+server with `prlctl`, `open` and `defaults` stubbed, so nothing touches Parallels, the network
+or `~/Parallels`. It can simulate a dropped connection (`--die-at`), a stalled mirror
+(`--stall-at`), a bad checksum (`--bad-sha`) and any transfer rate.
+
+It runs a *copy* of `install.sh`. Bash reads a script incrementally by byte offset, so editing
+`install.sh` while a run is in flight makes the running shell resume at a stale position and
+fail with nonsense — a fragment of a word reported as "command not found". That is very easy
+to do by accident while iterating, and very confusing to debug.
+
+For the guest, `test/tui/deploy-guest.sh <vm> push|glyphs|verify|rearm-firstboot|shot` pushes
+the payload into a running VM over `prlctl exec` (no sshd needed — a quick-install image
+leaves it off), runs things on a spare virtual terminal, and screenshots the framebuffer.
+That screenshot is the only honest test of a console font.
+
+## Recording
+
+`vhs` (`brew install vhs`) drives the tapes in `test/tui/*.tape` against the harness, so the
+GIFs in `docs/assets/` are reproducible and do not require a real 4.7 GB download.
+
+```sh
+vhs test/tui/rec-menu.tape        # docs/assets/install-menu.gif
+vhs test/tui/rec-resilience.tape  # docs/assets/install-resilience.gif
+```
+
+The README hero is different: its figures have to be the real ones — the actual release
+version, the actual 4.7 GB download, the actual transfer rates and the 24 GB unpack — and a
+real run takes about fifteen minutes, which is no use as a GIF.
+
+So it is recorded once from a real install and replayed. `record-cast.py` captures the session
+with timings; `play-cast.py` replays it. None of the bytes change, so every number on screen is
+what the run actually produced.
+
+Uniform time-compression was the obvious approach and it looked wrong, for one specific reason:
+a spinner. Sped up, it cycles many times per recorded frame and aliases into visual noise, and
+no single speed avoids that — a spinner only reads as a spinner in real time. (The progress
+bars were fine either way; it was always the spinner.) So `--plan` varies the speed across the
+run: the parts worth watching play at 1x, and the long monotonous middles are raced through at
+500x while the recorder looks away. The byte stream is never cut, so the terminal is always in
+a state the real run actually produced.
+
+An earlier attempt dropped frames instead, to lighten the terminal's load, and scrambled the
+display: every frame begins by moving the cursor up by the height of the frame before it, so
+removing a frame of a different height makes each later frame draw in the wrong place. Pacing
+now coalesces writes by output time slice, which drops nothing.
+
+```sh
+# a real install — needs ~30 GB free and no VM registered as "Omarchy"
+python3 test/tui/record-cast.py --out /tmp/hero.cast --cols 100 --rows 30 -- \
+  bash install.sh --quick
+vhs test/tui/rec-hero.tape        # docs/assets/install-quick.gif
+```
+
+The tape's `Hide`/`Show` windows are timed against the plan's segment durations, which
+`play-cast.py` prints to stderr — re-tune them together if the plan changes.
+
+The cast itself is not committed (it is megabytes of escape sequences), so regenerating the
+hero means doing a real download. The menu and resilience GIFs come from the harness and need
+neither.
+
+### The end-to-end GIF
+
+`docs/assets/end-to-end.gif` joins that installer recording to a capture of the VM booting —
+first boot, the countdown, the desktop, the welcome window. The two halves are captured very
+differently:
+
+```sh
+vhs test/tui/rec-hero.tape                    # writes build/out/installer.mp4
+# …then, while the VM reboots, capture the guest framebuffer:
+while :; do prlctl capture Omarchy --file "/tmp/vmframes/f$(date +%s%N).png"; done
+test/tui/make-end-to-end.sh /tmp/vmframes docs/assets/end-to-end.gif
+```
+
+The VM half uses `prlctl capture` rather than screen-recording the Parallels window. Screen
+recording gives a far better frame rate, but it only works while the Mac is unlocked and it
+sees whatever else is on screen; `prlctl capture` works headlessly and sees nothing but the
+guest. It tops out near 2 fps, which is enough here — the boot is mostly static screens, and
+the one animation that matters, the first-boot countdown, still gets two or three frames a
+second.
+
+### Camera moves
+
+Both halves then go through `tools/compose-demo.py`, which frames the source on the Omarchy
+wallpaper and moves a camera over it from keyframes in `build/shots/*.json`.
+
+That is [reelkit](https://github.com/azilnik/reelkit)'s idea. Reelkit shoots an app flat and
+far above the composition size, then composes the camera afterwards, so a push-in only ever
+crops and shrinks and never blurs. Its capture stage drives a web app with Playwright, so it
+cannot shoot a terminal or a VM — but the principle transfers, and it is the whole reason the
+close-ups stay sharp:
+
+- the installer is rendered at 2600 px wide (`FontSize 36`) into a 3200×2000 scene, and the
+  tightest shot crops to 1750 px — still downsampling into a 1200 px frame;
+- the VM is placed at its native 1024×768 in a 1600×1000 scene, so its tightest shot is 1:1.
+
+Two things to know if you re-cut it. Frame the camera on the *content*, not the scene centre —
+the terminal's text is left-aligned, and centring the crop chops the left edge off every line.
+And a camera move changes every pixel of every frame, so GIF's inter-frame compression has
+nothing to work with: colours, dither and width move the file size by a few per cent, and
+shortening the cut is the only real lever.
